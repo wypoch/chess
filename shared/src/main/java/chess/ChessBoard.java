@@ -1,5 +1,8 @@
 package chess;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -9,6 +12,20 @@ package chess;
 public class ChessBoard {
 
     ChessPiece[][] board = new ChessPiece[9][9];
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessBoard that = (ChessBoard) o;
+        return Objects.deepEquals(board, that.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(board);
+    }
 
     public ChessBoard() {
 
@@ -40,6 +57,28 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        // Define the ordering of the pieces on the base row
+        var basePieces = new ChessPiece.PieceType[]{ChessPiece.PieceType.ROOK,
+                ChessPiece.PieceType.KNIGHT,
+                ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.QUEEN,
+                ChessPiece.PieceType.KING,
+                ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.KNIGHT,
+                ChessPiece.PieceType.ROOK};
+
+        for (int i = 0; i < 8; i++) {
+            // Define white piece positions, and add the pieces in column i + 1
+            var whitePos1 = new ChessPosition(1, i + 1);
+            var whitePos2 = new ChessPosition(2, i+1);
+            addPiece(whitePos1, new ChessPiece(ChessGame.TeamColor.WHITE, basePieces[i]));
+            addPiece(whitePos2, new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
+
+            // Define black piece positions, and add the pieces in column i + 1
+            var blackPos1 = new ChessPosition(8, i + 1);
+            var blackPos2 = new ChessPosition(7, i+1);
+            addPiece(blackPos1, new ChessPiece(ChessGame.TeamColor.BLACK, basePieces[i]));
+            addPiece(blackPos2, new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+        }
     }
 }
