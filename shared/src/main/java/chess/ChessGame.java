@@ -84,6 +84,13 @@ public class ChessGame {
         } else {
             currBoard.addPiece(move.getEndPosition(), currPiece);
         }
+
+        // Change the current team
+        if (currTeam == TeamColor.WHITE) {
+            currTeam = TeamColor.BLACK;
+        } else {
+            currTeam = TeamColor.WHITE;
+        }
     }
 
     /**
