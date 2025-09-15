@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -11,20 +12,24 @@ import java.util.Collection;
 public class ChessGame {
 
     private TeamColor currTeam;
-    private ChessBoard currBoard;
+    private ChessBoard currBoard = new ChessBoard();
 
     public ChessGame() {
-
+        currBoard.resetBoard();
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return currTeam == chessGame.currTeam && Objects.equals(currBoard, chessGame.currBoard);
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return Objects.hash(currTeam, currBoard);
     }
 
     /**
@@ -40,7 +45,7 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        var currTeam = team;
+        currTeam = team;
     }
 
     /**
@@ -69,7 +74,16 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        // Remove the piece from the start position
+        var currPiece = currBoard.getPiece(move.getStartPosition());
+        currBoard.removePiece(move.getStartPosition());
+
+        // Add a new piece to the end position, replacing with the promotion piece if applicable
+        if (move.getPromotionPiece() != null) {
+            currBoard.addPiece(move.getEndPosition(), new ChessPiece(currTeam, move.getPromotionPiece()));
+        } else {
+            currBoard.addPiece(move.getEndPosition(), currPiece);
+        }
     }
 
     /**
@@ -109,7 +123,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        var currBoard = board;
+        currBoard = board;
     }
 
     /**
