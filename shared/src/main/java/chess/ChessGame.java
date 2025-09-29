@@ -12,9 +12,11 @@ import java.util.Objects;
 public class ChessGame {
 
     private TeamColor currTeam;
-    private ChessBoard currBoard = new ChessBoard();
+    private ChessBoard currBoard;
 
     public ChessGame() {
+        // Set up an immediately playable board
+        currBoard = new ChessBoard();
         currBoard.resetBoard();
     }
 
@@ -74,16 +76,22 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        // Remove the piece from the start position
-        var currPiece = currBoard.getPiece(move.getStartPosition());
-        currBoard.removePiece(move.getStartPosition());
 
-        // Add a new piece to the end position, replacing with the promotion piece if applicable
-        if (move.getPromotionPiece() != null) {
-            currBoard.addPiece(move.getEndPosition(), new ChessPiece(currTeam, move.getPromotionPiece()));
-        } else {
-            currBoard.addPiece(move.getEndPosition(), currPiece);
+        // Check that the move is valid
+        var valid = this.validMoves(move.getStartPosition());
+        boolean isValid = false;
+        for (var possMove : valid) {
+            if (move.equals(possMove)) {
+                isValid = true;
+                break;
+            }
         }
+        if (!isValid) {
+            throw new InvalidMoveException();
+        }
+
+        // If so, move the piece
+        currBoard.movePiece(move.getStartPosition(), move.getEndPosition(), move.getPromotionPiece());
 
         // Change the current team
         if (currTeam == TeamColor.WHITE) {

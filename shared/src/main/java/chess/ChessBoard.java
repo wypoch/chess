@@ -32,12 +32,24 @@ public class ChessBoard {
     }
 
     /**
-     * Removes a chess piece from the chessboard
+     * Move a chess piece on the chessboard, assuming the move is valid
      *
-     * @param position where to remove the piece from
+     * @param startPosition position of piece we want to remove
+     * @param endPosition position we want to move piece to
+     * @param promotionPiece the type of piece we are promoting to (null except for pawns)
      */
-    public void removePiece(ChessPosition position) {
-        board[position.getRow()-1][position.getColumn()-1] = null;
+    public void movePiece(ChessPosition startPosition, ChessPosition endPosition, ChessPiece.PieceType promotionPiece) {
+        ChessPiece piece = this.getPiece(startPosition);
+
+        // Add a new piece to the end position, replacing with the promotion piece if applicable
+        if (promotionPiece != null) {
+            this.addPiece(endPosition, new ChessPiece(piece.getTeamColor(), promotionPiece));
+        } else {
+            this.addPiece(endPosition, piece);
+        }
+
+        // Remove the piece from the start position
+        board[startPosition.getRow()-1][startPosition.getColumn()-1] = null;
     }
 
     /**
@@ -79,13 +91,13 @@ public class ChessBoard {
         for (int i = 0; i < 8; i++) {
             // Define white piece positions, and add the pieces in column i + 1
             var whitePos1 = new ChessPosition(1, i + 1);
-            var whitePos2 = new ChessPosition(2, i+1);
+            var whitePos2 = new ChessPosition(2, i + 1);
             addPiece(whitePos1, new ChessPiece(ChessGame.TeamColor.WHITE, basePieces[i]));
             addPiece(whitePos2, new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
 
             // Define black piece positions, and add the pieces in column i + 1
             var blackPos1 = new ChessPosition(8, i + 1);
-            var blackPos2 = new ChessPosition(7, i+1);
+            var blackPos2 = new ChessPosition(7, i + 1);
             addPiece(blackPos1, new ChessPiece(ChessGame.TeamColor.BLACK, basePieces[i]));
             addPiece(blackPos2, new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
         }
