@@ -15,6 +15,11 @@ public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
 
+    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+        this.pieceColor = pieceColor;
+        this.type = type;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -27,11 +32,6 @@ public class ChessPiece {
     @Override
     public int hashCode() {
         return Objects.hash(pieceColor, type);
-    }
-
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
-        this.pieceColor = pieceColor;
-        this.type = type;
     }
 
     /**
@@ -61,305 +61,133 @@ public class ChessPiece {
     }
 
     /**
-     * Takes an existing move set and board, and adds the possible moves for a bishop of the indicated color
+     * Takes an existing move set and board, and adds the possible moves for a piece of the indicated color
      * starting from the indicated position. NOTE: does not consider whether a move leaves a king in danger.
      *
-     * @param moveSet existing move set
+     * @param moves existing move set
+     * @param startPos position of the piece
      * @param board existing board
-     * @param myPosition position of the bishop
-     * @param myColor color of the bishop
+     * @param myColor color of the piece
      */
-    public void addBishopMoves(HashSet<ChessMove> moveSet, ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor myColor) {
+    public void addMovesBase(HashSet<ChessMove> moves, ChessPosition startPos, ChessBoard board, ChessGame.TeamColor myColor,
+                             int[][] offsets, boolean recursive) {
 
-        int[] offsets = {1, -1};
+        for (var offset : offsets) {
+            int numIters = 0;
+            var currRow = startPos.getRow();
+            var currCol = startPos.getColumn();
 
-        // Bishops move in diagonal lines as far as there is open space
-        for (var horOff : offsets) {
-            for (var vertOff : offsets) {
-                var currRow = myPosition.getRow();
-                var currCol = myPosition.getColumn();
-                while (true) {
-                    currRow += vertOff;
-                    currCol += horOff;
+            while (true) {
+                currRow += offset[0];
+                currCol += offset[1];
 
-                    // About to hit the edge
-                    if (currRow > 8 || currRow < 1 || currCol > 8 || currCol < 1) {
-                        break;
+                if (currRow < 1 || currRow > 8 || currCol < 1 || currCol > 8) {
+                    break;
+                }
+
+                var newPos = new ChessPosition(currRow, currCol);
+                var newPiece = board.getPiece(newPos);
+                if (newPiece != null ) {
+                    if (newPiece.getTeamColor() != myColor) {
+                        moves.add(new ChessMove(startPos, newPos, null));
                     }
-
-                    ChessPosition currPos = new ChessPosition(currRow, currCol);
-                    ChessPiece currPiece = board.getPiece(currPos);
-
-                    // About to land on a piece
-                    if (currPiece != null) {
-                        // We are about to capture the opponent's pieces
-                        if (currPiece.pieceColor != myColor) {
-                            moveSet.add(new ChessMove(myPosition, currPos, null));
-                        }
-                        break;
-                    }
-                    moveSet.add(new ChessMove(myPosition, currPos, null));
+                    break;
+                }
+                moves.add(new ChessMove(startPos, newPos, null));
+                numIters += 1;
+                if (numIters == 1 && !recursive) {
+                    break;
                 }
             }
         }
-    }
-
-    /**
-     * Takes an existing move set and board, and adds the possible moves for a king of the indicated color
-     * starting from the indicated position. NOTE: does not consider whether a move leaves a king in danger.
-     *
-     * @param moveSet existing move set
-     * @param board existing board
-     * @param myPosition position of the king
-     * @param myColor color of the king
-     */
-    public void addKingMoves(HashSet<ChessMove> moveSet, ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor myColor) {
-
-        int[] offsets = {-1, 0, 1};
-
-        // Kings may move 1 square in any direction (including diagonals)
-        for (var horOff : offsets) {
-            for (var vertOff : offsets) {
-
-                var currRow = myPosition.getRow();
-                var currCol = myPosition.getColumn();
-
-                currRow += horOff;
-                currCol += vertOff;
-
-                // About to hit the edge
-                if (currRow > 8 || currRow < 1 || currCol > 8 || currCol < 1) {
-                    continue;
-                }
-
-                var currPos = new ChessPosition(currRow, currCol);
-                ChessPiece currPiece = board.getPiece(currPos);
-
-                // About to land on a piece
-                if (currPiece != null) {
-                    // We are about to capture one of our own pieces
-                    if (currPiece.pieceColor == myColor) {
-                        continue;
-                    }
-                }
-
-                moveSet.add(new ChessMove(myPosition, currPos, null));
-            }
-        }
-    }
-
-    /**
-     * Takes an existing move set and board, and adds the possible moves for a knight of the indicated color
-     * starting from the indicated position. NOTE: does not consider whether a move leaves a king in danger.
-     *
-     * @param moveSet existing move set
-     * @param board existing board
-     * @param myPosition position of the knight
-     * @param myColor color of the knight
-     */
-    public void addKnightMoves(HashSet<ChessMove> moveSet, ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor myColor) {
-
-        int[] horOffsets = {-2, -1, 1, 2, 2, 1, -1, -2};
-        int[] vertOffsets = {1, 2, 2, 1, -1, -2, -2, -1};
-
-        // Knights move in an L shape, moving 2 squares in one direction and 1 square in the other direction
-        for (int i = 0; i < horOffsets.length; i++) {
-            var currRow = myPosition.getRow();
-            var currCol = myPosition.getColumn();
-
-            currRow += horOffsets[i];
-            currCol += vertOffsets[i];
-
-            // About to hit the edge
-            if (currRow > 8 || currRow < 1 || currCol > 8 || currCol < 1) {
-                continue;
-            }
-
-            var currPos = new ChessPosition(currRow, currCol);
-            ChessPiece currPiece = board.getPiece(currPos);
-
-            // About to land on a piece
-            if (currPiece != null) {
-                // We are about to capture the opponent's pieces
-                if (currPiece.pieceColor != myColor) {
-                    moveSet.add(new ChessMove(myPosition, currPos, null));
-                }
-                continue;
-            }
-            moveSet.add(new ChessMove(myPosition, currPos, null));
-        }
-    }
-
-    /**
-     * Takes an existing move set and board, and adds the possible moves for a rook of the indicated color
-     * starting from the indicated position. NOTE: does not consider whether a move leaves a king in danger.
-     *
-     * @param moveSet existing move set
-     * @param board existing board
-     * @param myPosition position of the rook
-     * @param myColor color of the rook
-     */
-    public void addRookMoves(HashSet<ChessMove> moveSet, ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor myColor) {
-
-        int[] offsets = {1, -1};
-        boolean[] bools = {true, false};
-
-        // Rooks may move in straight lines as far as there is open space
-        for (var off : offsets) {
-            for (var isVert : bools) {
-                var currRow = myPosition.getRow();
-                var currCol = myPosition.getColumn();
-                while (true) {
-                    if (isVert) {
-                        currRow += off;
-                    } else {
-                        currCol += off;
-                    }
-
-                    // About to hit the edge
-                    if (currRow > 8 || currRow < 1 || currCol > 8 || currCol < 1) {
-                        break;
-                    }
-
-                    ChessPosition currPos = new ChessPosition(currRow, currCol);
-                    ChessPiece currPiece = board.getPiece(currPos);
-
-                    // About to land on a piece
-                    if (currPiece != null) {
-                        // We are about to capture the opponent's pieces
-                        if (currPiece.pieceColor != myColor) {
-                            moveSet.add(new ChessMove(myPosition, currPos, null));
-                        }
-                        break;
-                    }
-                    moveSet.add(new ChessMove(myPosition, currPos, null));
-                }
-            }
-        }
-    }
-
-    /**
-     * Takes an existing move set and board, and adds the possible moves for a queen of the indicated color
-     * starting from the indicated position. NOTE: does not consider whether a move leaves a king in danger.
-     *
-     * @param moveSet existing move set
-     * @param board existing board
-     * @param myPosition position of the queen
-     * @param myColor color of the queen
-     */
-    public void addQueenMoves(HashSet<ChessMove> moveSet, ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor myColor) {
-        // Queens can move wherever Rooks and Bishops can move
-        addRookMoves(moveSet, board, myPosition, myColor);
-        addBishopMoves(moveSet, board, myPosition, myColor);
     }
 
     /**
      * Takes an existing move set and board, and adds the possible moves for a pawn of the indicated color
      * starting from the indicated position. NOTE: does not consider whether a move leaves a king in danger.
      *
-     * @param moveSet existing move set
+     * @param moves existing move set
+     * @param startPos position of the pawn
      * @param board existing board
-     * @param myPosition position of the pawn
      * @param myColor color of the pawn
      */
-    public void addPawnMoves(HashSet<ChessMove> moveSet, ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor myColor) {
+    public void addMovesPawn(HashSet<ChessMove> moves, ChessPosition startPos, ChessBoard board, ChessGame.TeamColor myColor) {
 
-        boolean isFirstMove = false;
-        var currRow = myPosition.getRow();
-        var currCol = myPosition.getColumn();
-        var promotionPieces = new PieceType[]{PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP, PieceType.QUEEN};
+        ChessPiece.PieceType[] promotionPieces = new ChessPiece.PieceType[]{PieceType.ROOK, PieceType.KNIGHT, PieceType.BISHOP, PieceType.QUEEN};
+
+        int maxMoves = 1;
+        var currRow = startPos.getRow();
+        var currCol = startPos.getColumn();
 
         if (myColor == ChessGame.TeamColor.WHITE && currRow == 2) {
-            isFirstMove = true;
+            maxMoves = 2;
         } else if (myColor == ChessGame.TeamColor.BLACK && currRow == 7) {
-            isFirstMove = true;
+            maxMoves = 2;
         }
 
-        // Moving forward one or two squares, depending on whether it is the first move
-        int maxSquares = 1;
-        if (isFirstMove) {
-            maxSquares = 2;
-        }
-
-        while (maxSquares > 0) {
-            // Move forward one square
+        // Forward moves
+        while (maxMoves > 0) {
             if (myColor == ChessGame.TeamColor.WHITE) {
                 currRow += 1;
-            } else {
+            } else if (myColor == ChessGame.TeamColor.BLACK) {
                 currRow -= 1;
             }
-            maxSquares -= 1;
 
-            // About to hit the edge
-            if (currRow > 8 || currRow < 1 || currCol > 8 || currCol < 1) {
+            if (currRow < 1 || currRow > 8 || currCol < 1 || currCol > 8) {
                 break;
             }
 
-            ChessPosition currPos = new ChessPosition(currRow, currCol);
-            ChessPiece currPiece = board.getPiece(currPos);
-            // About to land on a piece; cannot capture
-            if (currPiece != null) {
+            var newPos = new ChessPosition(currRow, currCol);
+            var newPiece = board.getPiece(newPos);
+            if (newPiece != null ) {
                 break;
             }
-            // If we have reached the end of the board, include promotion pieces
-            if (currRow == 1 || currRow == 8) {
-                for (var possPiece : promotionPieces) {
-                    moveSet.add(new ChessMove(myPosition, currPos, possPiece));
+
+            if ((myColor == ChessGame.TeamColor.WHITE && currRow == 8) || (myColor == ChessGame.TeamColor.BLACK && currRow == 1)) {
+                for (var pPiece : promotionPieces) {
+                    moves.add(new ChessMove(startPos, newPos, pPiece));
                 }
-
+            } else {
+                moves.add(new ChessMove(startPos, newPos, null));
             }
-            else {
-                moveSet.add(new ChessMove(myPosition, currPos, null));
-            }
+            maxMoves -= 1;
         }
 
-        // Capturing an opposing diagonal piece
-        currRow = myPosition.getRow();
-        currCol = myPosition.getColumn();
-
-        // Get the rows and columns of the possible moves
-        int[] possRows = {0, 0};
+        // Diagonal moves
+        int[][] offsets;
         if (myColor == ChessGame.TeamColor.WHITE) {
-            possRows[0] = currRow + 1;
-            possRows[1] = currRow + 1;
+            offsets = new int[][]{{1, -1}, {1, 1}};
         } else {
-            possRows[0] = currRow - 1;
-            possRows[1] = currRow - 1;
+            offsets = new int[][]{{-1, -1}, {-1, 1}};
         }
 
-        int[] possCols = {currCol - 1, currCol + 1};
+        for (var offset : offsets) {
+            var currRow2 = startPos.getRow();
+            var currCol2 = startPos.getColumn();
 
-        // Check all the possible diagonal moves
-        for (int i = 0; i < possRows.length; i++) {
-            currRow = possRows[i];
-            currCol = possCols[i];
+            currRow2 += offset[0];
+            currCol2 += offset[1];
 
-            // About to hit the edge
-            if (currRow > 8 || currRow < 1 || currCol > 8 || currCol < 1) {
+            if (currRow2 < 1 || currRow2 > 8 || currCol2 < 1 || currCol2 > 8) {
                 continue;
             }
 
-            var currPos = new ChessPosition(currRow, currCol);
-            ChessPiece currPiece = board.getPiece(currPos);
-
-            // About to land on a piece
-            if (currPiece != null) {
-                // We are about to capture one of our own pieces
-                if (currPiece.pieceColor == myColor) {
-                    continue;
-                }
-
-                // If we have reached the end of the board, include promotion pieces
-                if (currRow == 1 || currRow == 8) {
-                    for (var possPiece : promotionPieces) {
-                        moveSet.add(new ChessMove(myPosition, currPos, possPiece));
+            var newPos = new ChessPosition(currRow2, currCol2);
+            var newPiece = board.getPiece(newPos);
+            if (newPiece != null) {
+                if (newPiece.getTeamColor() != myColor) {
+                    if ((myColor == ChessGame.TeamColor.WHITE && currRow2 == 8) || (myColor == ChessGame.TeamColor.BLACK && currRow2 == 1)) {
+                        for (var pPiece : promotionPieces) {
+                            moves.add(new ChessMove(startPos, newPos, pPiece));
+                        }
+                    } else {
+                        moves.add(new ChessMove(startPos, newPos, null));
                     }
-                }
-                else {
-                    moveSet.add(new ChessMove(myPosition, currPos, null));
+
                 }
             }
         }
+
     }
 
     /**
@@ -370,39 +198,42 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        var piece = board.getPiece(myPosition);
-        var myColor = piece.getTeamColor();
-        HashSet<ChessMove> moveSet = new HashSet<>();
+        HashSet<ChessMove> moves = new HashSet<>();
+        ChessPiece currPiece = board.getPiece(myPosition);
+        var myColor = currPiece.getTeamColor();
 
-        switch (piece.getPieceType()) {
+        switch (currPiece.getPieceType()) {
             case PieceType.BISHOP:
-                addBishopMoves(moveSet, board, myPosition, myColor);
+                addMovesBase(moves, myPosition, board, myColor, new int[][]{{1, -1}, {-1, 1}, {1, 1}, {-1, -1}}, true);
                 break;
 
             case PieceType.KING:
-                addKingMoves(moveSet, board, myPosition, myColor);
+                addMovesBase(moves, myPosition, board, myColor,
+                        new int[][]{{1, -1}, {-1, 1}, {1, 1}, {-1, -1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}}, false);
                 break;
 
             case PieceType.KNIGHT:
-                addKnightMoves(moveSet, board, myPosition, myColor);
+                addMovesBase(moves, myPosition, board, myColor,
+                        new int[][]{{2, -1}, {-2, 1}, {2, 1}, {-2, -1}, {1, 2}, {1, -2}, {-1, -2}, {-1, 2}}, false);
                 break;
 
             case PieceType.ROOK:
-                addRookMoves(moveSet, board, myPosition, myColor);
+                addMovesBase(moves, myPosition, board, myColor,
+                        new int[][]{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}, true);
                 break;
 
             case PieceType.QUEEN:
-                addQueenMoves(moveSet, board, myPosition, myColor);
+                addMovesBase(moves, myPosition, board, myColor,
+                        new int[][]{{1, -1}, {-1, 1}, {1, 1}, {-1, -1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}}, true);
                 break;
 
             case PieceType.PAWN:
-                addPawnMoves(moveSet, board, myPosition, myColor);
+                addMovesPawn(moves, myPosition, board, myColor);
                 break;
 
             default:
                 break;
         }
-
-        return moveSet;
+        return moves;
     }
 }
