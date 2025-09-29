@@ -80,8 +80,8 @@ public class ChessPiece {
 
             HashSet<ChessMove> moves = new HashSet<>();
 
+            // Consider all the possible direction we can move
             for (var offset : offsets) {
-                int numIters = 0;
                 var currRow = startPos.getRow();
                 var currCol = startPos.getColumn();
 
@@ -89,21 +89,25 @@ public class ChessPiece {
                     currRow += offset[0];
                     currCol += offset[1];
 
+                    // Reached end of board; cannot move forward
                     if (currRow < 1 || currRow > 8 || currCol < 1 || currCol > 8) {
                         break;
                     }
 
+                    // Move the piece, if our own piece is not in the way
                     var newPos = new ChessPosition(currRow, currCol);
                     var newPiece = board.getPiece(newPos);
                     if (newPiece != null) {
+                        // Capture enemy piece and exit the loop
                         if (newPiece.getTeamColor() != myColor) {
                             moves.add(new ChessMove(startPos, newPos, null));
                         }
                         break;
                     }
                     moves.add(new ChessMove(startPos, newPos, null));
-                    numIters += 1;
-                    if (numIters == 1 && !recursive) {
+
+                    // Only recurse if instructed to
+                    if (!recursive) {
                         break;
                     }
                 }
@@ -217,6 +221,7 @@ public class ChessPiece {
             var currRow = startPos.getRow();
             var currCol = startPos.getColumn();
 
+            // Determine if this is the pawn's first move
             if (myColor == ChessGame.TeamColor.WHITE && currRow == 2) {
                 maxMoves = 2;
             } else if (myColor == ChessGame.TeamColor.BLACK && currRow == 7) {
@@ -231,16 +236,19 @@ public class ChessPiece {
                     currRow -= 1;
                 }
 
+                // Reached end of board; cannot move forward
                 if (currRow < 1 || currRow > 8 || currCol < 1 || currCol > 8) {
                     break;
                 }
 
+                // Cannot capture a piece when moving forward
                 var newPos = new ChessPosition(currRow, currCol);
                 var newPiece = board.getPiece(newPos);
                 if (newPiece != null ) {
                     break;
                 }
 
+                // Move the pawn forward, and potentially promote it
                 if ((myColor == ChessGame.TeamColor.WHITE && currRow == 8) || (myColor == ChessGame.TeamColor.BLACK && currRow == 1)) {
                     for (var pPiece : promotionPieces) {
                         moves.add(new ChessMove(startPos, newPos, pPiece));
@@ -266,10 +274,12 @@ public class ChessPiece {
                 currRow2 += offset[0];
                 currCol2 += offset[1];
 
+                // Reached end of board; cannot move forward
                 if (currRow2 < 1 || currRow2 > 8 || currCol2 < 1 || currCol2 > 8) {
                     continue;
                 }
 
+                // Move the pawn diagonally, if possible, and potentially promote it
                 var newPos = new ChessPosition(currRow2, currCol2);
                 var newPiece = board.getPiece(newPos);
                 if (newPiece != null) {
