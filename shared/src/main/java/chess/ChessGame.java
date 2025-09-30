@@ -143,9 +143,11 @@ public class ChessGame {
         for (var row : board.board ) {
             int currCol = 1;
             for (ChessPiece piece : row) {
-                if (piece.getTeamColor() == teamColor) {
-                    if (piece.getPieceType() == ChessPiece.PieceType.KING) {
-                        return new ChessPosition(currRow, currCol);
+                if (piece != null) {
+                    if (piece.getTeamColor() == teamColor) {
+                        if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+                            return new ChessPosition(currRow, currCol);
+                        }
                     }
                 }
                 currCol += 1;
@@ -163,11 +165,13 @@ public class ChessGame {
         for (var row : board.board ) {
             int currCol = 1;
             for (ChessPiece piece : row) {
-                if (piece.getTeamColor() != teamColor) {
-                    var possMoves = piece.pieceMoves(board, new ChessPosition(currRow, currCol));
-                    for (var move : possMoves) {
-                        if (move.getEndPosition().equals(kingPos)) {
-                            return true;
+                if (piece != null) {
+                    if (piece.getTeamColor() != teamColor) {
+                        var possMoves = piece.pieceMoves(board, new ChessPosition(currRow, currCol));
+                        for (var move : possMoves) {
+                            if (move.getEndPosition().equals(kingPos)) {
+                                return true;
+                            }
                         }
                     }
                 }
@@ -200,10 +204,12 @@ public class ChessGame {
         for (var row : currBoard.board ) {
             int currCol = 1;
             for (ChessPiece piece : row) {
-                if (piece.getTeamColor() == teamColor) {
-                    var possMoves = piece.pieceMoves(currBoard, new ChessPosition(currRow, currCol));
-                    if (!possMoves.isEmpty()) {
-                        return false;
+                if (piece != null) {
+                    if (piece.getTeamColor() == teamColor) {
+                        var possMoves = piece.pieceMoves(currBoard, new ChessPosition(currRow, currCol));
+                        if (!possMoves.isEmpty()) {
+                            return false;
+                        }
                     }
                 }
                 currCol += 1;
