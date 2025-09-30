@@ -109,10 +109,20 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
 
-        // Check that the move is valid
-        var valid = this.validMoves(move.getStartPosition());
+        var startPos = move.getStartPosition();
+        ChessPiece piece = currBoard.getPiece(startPos);
+
+        // Check the piece to be moved exists
+        if (piece == null) {
+            throw new InvalidMoveException();
+        }
+        // Check the piece to be moved is on the current team
+        else if (piece.getTeamColor() != currTeam) {
+            throw new InvalidMoveException();
+        }
+        // Check that the move is valid in terms of chess rules
         boolean isValid = false;
-        for (var possMove : valid) {
+        for (var possMove : this.validMoves(startPos)) {
             if (move.equals(possMove)) {
                 isValid = true;
                 break;
