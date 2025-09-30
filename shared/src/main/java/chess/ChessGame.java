@@ -177,7 +177,29 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // Must be in check to be in stalemate
+        boolean inCheck = this.isInCheck(teamColor);
+        if (!inCheck) {
+            return false;
+        }
+
+        // Must have no valid moves to be in stalemate
+        int currRow = 1;
+        for (var row : currBoard.board ) {
+            int currCol = 1;
+            for (ChessPiece piece : row) {
+                if (piece.getTeamColor() == teamColor) {
+                    var possMoves = piece.pieceMoves(currBoard, new ChessPosition(currRow, currCol));
+                    if (!possMoves.isEmpty()) {
+                        return false;
+                    }
+                }
+                currCol += 1;
+            }
+            currRow += 1;
+        }
+
+        return true;
     }
 
     /**
