@@ -171,19 +171,12 @@ public class ChessGame {
     }
 
     /**
-     * Determines if the given team is in checkmate
+     * Determines if the given team has any valid moves
      *
-     * @param teamColor which team to check for checkmate
-     * @return True if the specified team is in checkmate
+     * @param teamColor which team to check for valid moves
+     * @return True if the specified team has a valid move
      */
-    public boolean isInCheckmate(TeamColor teamColor) {
-        // Must be in check to be in stalemate
-        boolean inCheck = this.isInCheck(teamColor);
-        if (!inCheck) {
-            return false;
-        }
-
-        // Must have no valid moves to be in stalemate
+    public boolean hasValidMoves(TeamColor teamColor) {
         int currRow = 1;
         for (var row : currBoard.board ) {
             int currCol = 1;
@@ -203,6 +196,23 @@ public class ChessGame {
     }
 
     /**
+     * Determines if the given team is in checkmate
+     *
+     * @param teamColor which team to check for checkmate
+     * @return True if the specified team is in checkmate
+     */
+    public boolean isInCheckmate(TeamColor teamColor) {
+        // Must be in check to be in stalemate
+        boolean inCheck = this.isInCheck(teamColor);
+        if (!inCheck) {
+            return false;
+        }
+
+        // Must have no valid moves to be in stalemate
+        return hasValidMoves(teamColor);
+    }
+
+    /**
      * Determines if the given team is in stalemate, which here is defined as having
      * no valid moves while not in check.
      *
@@ -217,22 +227,7 @@ public class ChessGame {
         }
 
         // Must have no valid moves to be in stalemate
-        int currRow = 1;
-        for (var row : currBoard.board ) {
-            int currCol = 1;
-            for (ChessPiece piece : row) {
-                if (piece.getTeamColor() == teamColor) {
-                    var possMoves = piece.pieceMoves(currBoard, new ChessPosition(currRow, currCol));
-                    if (!possMoves.isEmpty()) {
-                        return false;
-                    }
-                }
-                currCol += 1;
-            }
-            currRow += 1;
-        }
-
-        return true;
+        return hasValidMoves(teamColor);
     }
 
     /**
