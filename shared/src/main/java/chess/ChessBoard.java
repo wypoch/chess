@@ -88,6 +88,7 @@ public class ChessBoard {
                 ChessPiece.PieceType.KNIGHT,
                 ChessPiece.PieceType.ROOK};
 
+        // Add white and black pieces to the board
         for (int i = 0; i < 8; i++) {
             // Define white piece positions, and add the pieces in column i + 1
             var whitePos1 = new ChessPosition(1, i + 1);
@@ -100,6 +101,13 @@ public class ChessBoard {
             var blackPos2 = new ChessPosition(7, i + 1);
             addPiece(blackPos1, new ChessPiece(ChessGame.TeamColor.BLACK, basePieces[i]));
             addPiece(blackPos2, new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+        }
+
+        // Ensure the remaining pieces on the board are null
+        for (int i = 3; i < 7; i++) {
+            for (int j = 1; j <= 8; j++) {
+                this.board[i-1][j-1] = null;
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -66,7 +67,22 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        // Return null if there is no piece at the startPosition
+        ChessPiece piece = currBoard.getPiece(startPosition);
+        ChessGame.TeamColor currColor = piece.getTeamColor();
+
+        if (piece == null) {
+            return null;
+        }
+
+        // Create a new copy of the board for each move to test whether the
+        var possMoves = validMoves(startPosition);
+        for (ChessMove move : possMoves) {
+            ChessPosition pos = move.getStartPosition();
+
+        }
+
+        return new HashSet<>();
     }
 
     /**
@@ -102,33 +118,39 @@ public class ChessGame {
     }
 
     /**
-     * Determines if the given team is in check
-     *
-     * @param teamColor which team to check for check
-     * @return True if the specified team is in check
+     * Determines the position of the king belonging to the specified team
+     * @param teamColor king color
+     * @return position of the king
      */
-    public boolean isInCheck(TeamColor teamColor) {
-        boolean inCheck = false;
-        ChessBoard currBoard = getBoard();
-
-        // Find the king's position
-        ChessPosition kingPos = null;
+    public ChessPosition getKingPos(TeamColor teamColor) {
         int currRow = 1;
         for (var row : currBoard.board ) {
             int currCol = 1;
             for (ChessPiece piece : row) {
                 if (piece.getTeamColor() == teamColor) {
                     if (piece.getPieceType() == ChessPiece.PieceType.KING) {
-                        kingPos = new ChessPosition(currRow, currCol);
+                        return new ChessPosition(currRow, currCol);
                     }
                 }
                 currCol += 1;
             }
             currRow += 1;
         }
+        return null;
+    }
+
+    /**
+     * Determines if the given team is in check
+     *
+     * @param teamColor which team to check for check
+     * @return True if the specified team is in check
+     */
+    public boolean isInCheck(TeamColor teamColor) {
+
+        ChessPosition kingPos = getKingPos(teamColor);
 
         // Search all enemy pieces and see if they can capture the king
-        currRow = 1;
+        int currRow = 1;
         for (var row : currBoard.board ) {
             int currCol = 1;
             for (ChessPiece piece : row) {
@@ -136,7 +158,7 @@ public class ChessGame {
                     var possMoves = piece.pieceMoves(currBoard, new ChessPosition(currRow, currCol));
                     for (var move : possMoves) {
                         if (move.getEndPosition().equals(kingPos)) {
-                            inCheck = true;
+                            return true;
                         }
                     }
                 }
@@ -145,7 +167,7 @@ public class ChessGame {
             currRow += 1;
         }
 
-        return inCheck;
+        return false;
     }
 
     /**
@@ -166,7 +188,29 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // Must not be in check to be in stalemate
+        boolean inCheck = this.isInCheck(teamColor);
+        if (inCheck) {
+            return false;
+        }
+
+        // Must have no valid moves to be in stalemate
+        int currRow = 1;
+        for (var row : currBoard.board ) {
+            int currCol = 1;
+            for (ChessPiece piece : row) {
+                if (piece.getTeamColor() == teamColor) {
+                    var possMoves = piece.pieceMoves(currBoard, new ChessPosition(currRow, currCol));
+                    if (!possMoves.isEmpty()) {
+                        return false;
+                    }
+                }
+                currCol += 1;
+            }
+            currRow += 1;
+        }
+
+        return true;
     }
 
     /**
