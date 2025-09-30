@@ -67,22 +67,38 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+
+        HashSet<ChessMove> allValidMoves = new HashSet<>();
+
         // Return null if there is no piece at the startPosition
         ChessPiece piece = currBoard.getPiece(startPosition);
-        ChessGame.TeamColor currColor = piece.getTeamColor();
-
         if (piece == null) {
             return null;
         }
 
-        // Create a new copy of the board for each move to test whether the
-        var possMoves = validMoves(startPosition);
+        // Create a new copy of the board for each move to test whether the move puts the king in check
+        var possMoves = piece.pieceMoves(currBoard, startPosition);
         for (ChessMove move : possMoves) {
-            ChessPosition pos = move.getStartPosition();
+            var boardCopy = new ChessBoard();
 
+            // Make a copy of the board
+            for (int row = 1; row <= 8; row++) {
+                for (int col = 1; col <= 8; col++) {
+                    var piece_pos = new ChessPosition(row, col);
+                    // TODO: is this an actual copy or not?
+                    boardCopy.addPiece(piece_pos, currBoard.getPiece(piece_pos));
+                }
+            }
+
+            // Simulate moving the piece and check our team's king goes into check; if not, consider the move valid
+            boardCopy.movePiece(move.getStartPosition(), move.getEndPosition(), move.getPromotionPiece());
+            var inCheck = isInCheckBoard(piece.getTeamColor(), boardCopy);
+            if (!inCheck) {
+                allValidMoves.add(move);
+            }
         }
 
-        return new HashSet<>();
+        return allValidMoves;
     }
 
     /**
@@ -122,9 +138,9 @@ public class ChessGame {
      * @param teamColor king color
      * @return position of the king
      */
-    public ChessPosition getKingPos(TeamColor teamColor) {
+    public ChessPosition getKingPos(TeamColor teamColor, ChessBoard board) {
         int currRow = 1;
-        for (var row : currBoard.board ) {
+        for (var row : board.board ) {
             int currCol = 1;
             for (ChessPiece piece : row) {
                 if (piece.getTeamColor() == teamColor) {
@@ -139,23 +155,16 @@ public class ChessGame {
         return null;
     }
 
-    /**
-     * Determines if the given team is in check
-     *
-     * @param teamColor which team to check for check
-     * @return True if the specified team is in check
-     */
-    public boolean isInCheck(TeamColor teamColor) {
-
-        ChessPosition kingPos = getKingPos(teamColor);
+    public boolean isInCheckBoard(TeamColor teamColor, ChessBoard board) {
+        ChessPosition kingPos = getKingPos(teamColor, board);
 
         // Search all enemy pieces and see if they can capture the king
         int currRow = 1;
-        for (var row : currBoard.board ) {
+        for (var row : board.board ) {
             int currCol = 1;
             for (ChessPiece piece : row) {
                 if (piece.getTeamColor() != teamColor) {
-                    var possMoves = piece.pieceMoves(currBoard, new ChessPosition(currRow, currCol));
+                    var possMoves = piece.pieceMoves(board, new ChessPosition(currRow, currCol));
                     for (var move : possMoves) {
                         if (move.getEndPosition().equals(kingPos)) {
                             return true;
@@ -168,6 +177,16 @@ public class ChessGame {
         }
 
         return false;
+    }
+
+    /**
+     * Determines if the given team is in check
+     *
+     * @param teamColor which team to check for check
+     * @return True if the specified team is in check
+     */
+    public boolean isInCheck(TeamColor teamColor) {
+        return isInCheckBoard(teamColor, currBoard);
     }
 
     /**
