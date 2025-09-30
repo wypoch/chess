@@ -12,7 +12,7 @@ import java.util.Objects;
  */
 public class ChessGame {
 
-    private TeamColor currTeam;
+    private TeamColor currTeam = TeamColor.WHITE;
     private ChessBoard currBoard;
 
     public ChessGame() {
@@ -85,7 +85,6 @@ public class ChessGame {
             for (int row = 1; row <= 8; row++) {
                 for (int col = 1; col <= 8; col++) {
                     var piece_pos = new ChessPosition(row, col);
-                    // TODO: is this an actual copy or not?
                     boardCopy.addPiece(piece_pos, currBoard.getPiece(piece_pos));
                 }
             }
@@ -216,7 +215,7 @@ public class ChessGame {
             for (ChessPiece piece : row) {
                 if (piece != null) {
                     if (piece.getTeamColor() == teamColor) {
-                        var possMoves = piece.pieceMoves(currBoard, new ChessPosition(currRow, currCol));
+                        var possMoves = validMoves(new ChessPosition(currRow, currCol));
                         if (!possMoves.isEmpty()) {
                             return false;
                         }
