@@ -25,10 +25,13 @@ public class UserService {
 
         var userData = new UserData(username, registerRequest.password(), registerRequest.email());
 
+        // ensure the user doesn't already exist in the database
         var responseData = dataAccess.getUser(userData);
         if (responseData != null) {
             throw new DataAccessException("Error: username already taken");
-        } else {
+        }
+        // save the user to the database and generate an auth token
+        else {
             dataAccess.saveUser(userData);
             String authToken = UUID.randomUUID().toString();
 
