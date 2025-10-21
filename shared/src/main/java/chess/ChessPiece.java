@@ -282,16 +282,13 @@ public class ChessPiece {
                 // Move the pawn diagonally, if possible, and potentially promote it
                 var newPos = new ChessPosition(currRow2, currCol2);
                 var newPiece = board.getPiece(newPos);
-                if (newPiece != null) {
-                    if (newPiece.getTeamColor() != myColor) {
-                        if ((myColor == ChessGame.TeamColor.WHITE && currRow2 == 8) || (myColor == ChessGame.TeamColor.BLACK && currRow2 == 1)) {
-                            for (var pPiece : promotionPieces) {
-                                moves.add(new ChessMove(startPos, newPos, pPiece));
-                            }
-                        } else {
-                            moves.add(new ChessMove(startPos, newPos, null));
+                if (newPiece != null && newPiece.getTeamColor() != myColor) {
+                    if ((myColor == ChessGame.TeamColor.WHITE && currRow2 == 8) || (myColor == ChessGame.TeamColor.BLACK && currRow2 == 1)) {
+                        for (var pPiece : promotionPieces) {
+                            moves.add(new ChessMove(startPos, newPos, pPiece));
                         }
-
+                    } else {
+                        moves.add(new ChessMove(startPos, newPos, null));
                     }
                 }
             }

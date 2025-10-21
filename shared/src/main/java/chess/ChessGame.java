@@ -162,6 +162,16 @@ public class ChessGame {
         return null;
     }
 
+    public boolean canCapture(Collection<ChessMove> possMoves, ChessPosition kingPos) {
+        for (var move : possMoves) {
+            if (move.getEndPosition().equals(kingPos)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public boolean isInCheckBoard(TeamColor teamColor, ChessBoard board) {
         ChessPosition kingPos = getKingPos(teamColor, board);
 
@@ -172,10 +182,8 @@ public class ChessGame {
             for (ChessPiece piece : row) {
                 if (piece != null && piece.getTeamColor() != teamColor) {
                     var possMoves = piece.pieceMoves(board, new ChessPosition(currRow, currCol));
-                    for (var move : possMoves) {
-                        if (move.getEndPosition().equals(kingPos)) {
-                            return true;
-                        }
+                    if (canCapture(possMoves, kingPos)) {
+                        return true;
                     }
                 }
                 currCol += 1;
