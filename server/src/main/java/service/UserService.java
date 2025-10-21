@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.DataAccess;
 import dataaccess.AlreadyTakenException;
+import dataaccess.UnauthorizedException;
 import model.UserData;
 import model.AuthData;
 import service.login.LoginRequest;
@@ -42,8 +43,26 @@ public class UserService {
         }
     }
 
-    public LoginResult login(LoginRequest loginRequest) {
-        return new LoginResult("", "");
+    public LoginResult login(LoginRequest loginRequest) throws UnauthorizedException {
+        String username = loginRequest.username();
+
+        var userData = new UserData(username, loginRequest.password(), null);
+
+        // ensure the username/password combo is correct
+        var responseData = dataAccess.loginUser(userData);
+        if (responseData == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
+        // generate an auth token and update auth data
+        else {
+            String authToken = UUID.randomUUID().toString();
+
+            var authData = new AuthData(authToken, username);
+            dataAccess.updateAuth(authData);
+
+            return new LoginResult(username, authToken);
+        }
+
     }
     public void logout(LogoutRequest logoutRequest) {}
 }

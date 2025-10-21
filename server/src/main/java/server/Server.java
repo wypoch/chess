@@ -2,11 +2,13 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.AlreadyTakenException;
+import dataaccess.UnauthorizedException;
 import dataaccess.MemoryDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
 import service.UserService;
+import service.login.LoginRequest;
 import service.register.RegisterRequest;
 
 // import java.util.logging.Level;
@@ -27,13 +29,14 @@ public class Server {
 
         // Register your endpoints and exception handlers here.\
         server.post("user", this::register);
+        server.post("session", this::login);
         server.delete("db", ctx -> ctx.result("delete"));
 
         dataAccess = new MemoryDataAccess();
         userService = new UserService(dataAccess);
     }
 
-    private void register(@NotNull Context ctx) throws AlreadyTakenException {
+    private void register(@NotNull Context ctx) {
 
         var serializer = new Gson();
         String reqJson = ctx.body();
@@ -62,6 +65,35 @@ public class Server {
             ctx.status(403);
             ctx.json(body);
         }
+    }
+
+    private void login(@NotNull Context ctx) {
+        var serializer = new Gson();
+        String reqJson = ctx.body();
+        var req = serializer.fromJson(reqJson, Map.class);
+
+        // Get the serialized input from the JSON
+        var username = req.get("username").toString();
+        var password = req.get("password").toString();
+
+        // create a new login request for the specified user
+        var loginRequest = new LoginRequest(username, password);
+        var res = Map.of();
+
+        // try to log in the user and obtain an auth token for them
+        try {
+            var loginResult = userService.login(loginRequest);
+            res = Map.of("username", loginResult.username(),
+                    "authToken", loginResult.authToken());
+            ctx.result(serializer.toJson(res));
+        }
+        // handle exception
+        catch (UnauthorizedException e) {
+            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
+            ctx.status(401);
+            ctx.json(body);
+        }
+
     }
 
     public int run(int desiredPort) {

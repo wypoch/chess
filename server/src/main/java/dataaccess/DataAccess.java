@@ -5,5 +5,7 @@ import model.UserData;
 public interface DataAccess {
     void saveUser(UserData user);
     UserData getUser(UserData user);
+    UserData loginUser(UserData user);
     void createAuth(AuthData auth);
+    void updateAuth(AuthData auth);
 }
