@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
+import dataaccess.MemoryDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
@@ -34,10 +35,12 @@ public class Server {
         var email = req.get("email").toString();
 
         // create a new register request for the specified user
-        var userService = new UserService();
+        var dataAccess = new MemoryDataAccess();
+        var userService = new UserService(dataAccess);
         var registerRequest = new RegisterRequest(username, password, email);
         var res = Map.of("", "");
 
+        // try to register the user and obtain an auth token for them
         try {
             var registerResult = userService.register(registerRequest);
             res = Map.of("username", registerResult.username(),
