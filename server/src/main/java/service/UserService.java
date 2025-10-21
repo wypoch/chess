@@ -3,11 +3,14 @@ package service;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.UserData;
+import model.AuthData;
 import service.login.LoginRequest;
 import service.login.LoginResult;
 import service.register.RegisterRequest;
 import service.register.RegisterResult;
 import service.logout.LogoutRequest;
+
+import java.util.UUID;
 
 public class UserService {
 
@@ -27,8 +30,13 @@ public class UserService {
             throw new DataAccessException("Error: username already taken");
         } else {
             dataAccess.saveUser(userData);
+            String authToken = UUID.randomUUID().toString();
+
+            var authData = new AuthData(authToken, username);
+            dataAccess.createAuth(authData);
+
+            return new RegisterResult(username, authToken);
         }
-        return new RegisterResult(username, "");
     }
 
     public LoginResult login(LoginRequest loginRequest) {
