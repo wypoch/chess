@@ -21,8 +21,7 @@ public class ServiceTest {
 
         // Register the user again
         Assertions.assertThrows(DataAccessException.class, () -> {
-            var res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
-            Assertions.assertNotNull(res);
+            var res = userService.register(new RegisterRequest("test1", "test3", "test3@xyz.com"));
         });
     }
 }

@@ -9,11 +9,18 @@ import org.jetbrains.annotations.NotNull;
 import service.UserService;
 import service.register.RegisterRequest;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import java.util.Map;
 
 public class Server {
 
     private final Javalin server;
+    private static final Logger logger = Logger.getLogger(Server.class.getName());
+
+    private final MemoryDataAccess dataAccess;
+    private final UserService userService;
 
     public Server() {
         server = Javalin.create(config -> config.staticFiles.add("web"));
@@ -22,9 +29,12 @@ public class Server {
         server.post("user", this::register);
         server.delete("db", ctx -> ctx.result("delete"));
 
+        dataAccess = new MemoryDataAccess();
+        userService = new UserService(dataAccess);
     }
 
     private void register(@NotNull Context ctx) throws DataAccessException {
+
         var serializer = new Gson();
         String reqJson = ctx.body();
         var req = serializer.fromJson(reqJson, Map.class);
@@ -35,8 +45,6 @@ public class Server {
         var email = req.get("email").toString();
 
         // create a new register request for the specified user
-        var dataAccess = new MemoryDataAccess();
-        var userService = new UserService(dataAccess);
         var registerRequest = new RegisterRequest(username, password, email);
         var res = Map.of("", "");
 
@@ -45,9 +53,14 @@ public class Server {
             var registerResult = userService.register(registerRequest);
             res = Map.of("username", registerResult.username(),
                     "authToken", registerResult.authToken());
-
-        } catch (DataAccessException ex) {
-            res = Map.of("message", ex.toString());
+        }
+        // handle exception
+        catch (DataAccessException exception) {
+            logger.log(Level.SEVERE, "In exception");
+            res = Map.of("message", exception.toString());
+            ctx.result(serializer.toJson(res));
+            ctx.status(403);
+            return;
         }
 
         ctx.result(serializer.toJson(res));
