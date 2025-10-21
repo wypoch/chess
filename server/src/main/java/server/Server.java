@@ -17,7 +17,7 @@ import java.util.Map;
 public class Server {
 
     private final Javalin server;
-    private static final Logger logger = Logger.getLogger(Server.class.getName());
+    // private static final Logger logger = Logger.getLogger(Server.class.getName());
 
     private final MemoryDataAccess dataAccess;
     private final UserService userService;
