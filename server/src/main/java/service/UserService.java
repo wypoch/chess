@@ -1,7 +1,7 @@
 package service;
 
 import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
+import dataaccess.AlreadyTakenException;
 import model.UserData;
 import model.AuthData;
 import service.login.LoginRequest;
@@ -20,7 +20,7 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
+    public RegisterResult register(RegisterRequest registerRequest) throws AlreadyTakenException {
         String username = registerRequest.username();
 
         var userData = new UserData(username, registerRequest.password(), registerRequest.email());
@@ -28,7 +28,7 @@ public class UserService {
         // ensure the user doesn't already exist in the database
         var responseData = dataAccess.getUser(userData);
         if (responseData != null) {
-            throw new DataAccessException("Error: username already taken");
+            throw new AlreadyTakenException("username already taken");
         }
         // save the user to the database and generate an auth token
         else {

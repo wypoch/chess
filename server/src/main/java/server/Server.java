@@ -1,7 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
+import dataaccess.AlreadyTakenException;
 import dataaccess.MemoryDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import service.UserService;
 import service.register.RegisterRequest;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+// import java.util.logging.Level;
+// import java.util.logging.Logger;
 
 import java.util.Map;
 
@@ -33,7 +33,7 @@ public class Server {
         userService = new UserService(dataAccess);
     }
 
-    private void register(@NotNull Context ctx) throws DataAccessException {
+    private void register(@NotNull Context ctx) throws AlreadyTakenException {
 
         var serializer = new Gson();
         String reqJson = ctx.body();
@@ -46,24 +46,22 @@ public class Server {
 
         // create a new register request for the specified user
         var registerRequest = new RegisterRequest(username, password, email);
-        var res = Map.of("", "");
+        var res = Map.of();
 
         // try to register the user and obtain an auth token for them
         try {
             var registerResult = userService.register(registerRequest);
             res = Map.of("username", registerResult.username(),
                     "authToken", registerResult.authToken());
+            ctx.result(serializer.toJson(res));
         }
         // handle exception
-        catch (DataAccessException exception) {
-            logger.log(Level.SEVERE, "In exception");
-            res = Map.of("message", exception.toString());
-            ctx.result(serializer.toJson(res));
+        catch (AlreadyTakenException e) {
+            // logger.log(Level.SEVERE, "In exception");
+            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
             ctx.status(403);
-            return;
+            ctx.json(body);
         }
-
-        ctx.result(serializer.toJson(res));
     }
 
     public int run(int desiredPort) {

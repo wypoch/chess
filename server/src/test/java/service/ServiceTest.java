@@ -1,6 +1,6 @@
 package service;
 
-import dataaccess.DataAccessException;
+import dataaccess.AlreadyTakenException;
 import dataaccess.MemoryDataAccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ public class ServiceTest {
         });
 
         // Register the user again
-        Assertions.assertThrows(DataAccessException.class, () ->
+        Assertions.assertThrows(AlreadyTakenException.class, () ->
                 userService.register(new RegisterRequest("test1", "test3", "test3@xyz.com")));
     }
 
