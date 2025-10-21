@@ -64,5 +64,18 @@ public class UserService {
         }
 
     }
-    public void logout(LogoutRequest logoutRequest) {}
+
+    public void logout(LogoutRequest logoutRequest) throws UnauthorizedException {
+        String authToken = logoutRequest.authToken();
+
+        // try to find the authData associated with the authToken
+        var responseData = dataAccess.getAuth(authToken);
+        if (responseData == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
+        // assuming we found the authData, delete it
+        else {
+            dataAccess.deleteAuth(responseData);
+        }
+    }
 }

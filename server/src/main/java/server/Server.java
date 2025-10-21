@@ -9,17 +9,18 @@ import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
 import service.UserService;
 import service.login.LoginRequest;
+import service.logout.LogoutRequest;
 import service.register.RegisterRequest;
 
-// import java.util.logging.Level;
-// import java.util.logging.Logger;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
 
 import java.util.Map;
 
 public class Server {
 
     private final Javalin server;
-    // private static final Logger logger = Logger.getLogger(Server.class.getName());
+     private static final Logger logger = Logger.getLogger(Server.class.getName());
 
     private final MemoryDataAccess dataAccess;
     private final UserService userService;
@@ -30,7 +31,7 @@ public class Server {
         // Register your endpoints and exception handlers here.\
         server.post("user", this::register);
         server.post("session", this::login);
-        server.delete("db", ctx -> ctx.result("delete"));
+        server.delete("session", this::logout);
 
         dataAccess = new MemoryDataAccess();
         userService = new UserService(dataAccess);
@@ -60,7 +61,6 @@ public class Server {
         }
         // handle exception
         catch (AlreadyTakenException e) {
-            // logger.log(Level.SEVERE, "In exception");
             var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
             ctx.status(403);
             ctx.json(body);
@@ -93,7 +93,28 @@ public class Server {
             ctx.status(401);
             ctx.json(body);
         }
+    }
 
+    private void logout(@NotNull Context ctx) {
+        // Grab the auth token and create a logout request
+        String authToken = ctx.header("authorization");
+        logger.log(Level.SEVERE, String.format("My authToken: %s", authToken));
+        var logoutRequest = new LogoutRequest(authToken);
+        var res = Map.of();
+
+        // try to log out the user
+        try {
+            userService.logout(logoutRequest);
+            res = Map.of();
+            var serializer = new Gson();
+            ctx.result(serializer.toJson(res));
+        }
+        // handle exception
+        catch (UnauthorizedException e) {
+            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
+            ctx.status(401);
+            ctx.json(body);
+        }
     }
 
     public int run(int desiredPort) {

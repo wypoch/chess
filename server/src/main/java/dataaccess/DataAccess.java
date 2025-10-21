@@ -8,4 +8,6 @@ public interface DataAccess {
     UserData loginUser(UserData user);
     void createAuth(AuthData auth);
     void updateAuth(AuthData auth);
+    AuthData getAuth(String authToken);
+    void deleteAuth(AuthData auth);
 }

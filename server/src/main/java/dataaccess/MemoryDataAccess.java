@@ -27,6 +27,23 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public AuthData getAuth(String authToken) {
+        for (var username : authDataSaved.keySet()) {
+            var authData = authDataSaved.get(username);
+            if (authData.authToken().equals(authToken)) {
+                return authData;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void deleteAuth(AuthData auth) {
+        String target = auth.username();
+        authDataSaved.remove(target);
+    }
+
+    @Override
     public UserData loginUser(UserData user) {
         String targetName = user.username();
         String targetPass = user.password();
@@ -52,7 +69,6 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public void updateAuth(AuthData auth) {
         String target = auth.username();
-        authDataSaved.remove(target);
         authDataSaved.put(target, auth);
     }
 

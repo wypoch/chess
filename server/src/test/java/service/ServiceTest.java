@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.login.LoginRequest;
+import service.login.LoginResult;
+import service.logout.LogoutRequest;
 import service.register.RegisterRequest;
+import service.register.RegisterResult;
 
 public class ServiceTest {
 
@@ -80,6 +83,61 @@ public class ServiceTest {
             var res = userService.login(new LoginRequest("test4", "test5"));
             Assertions.assertNotNull(res);
         });
+    }
+
+    @Test
+    public void logoutTwice() {
+
+        RegisterResult res = null;
+        // Register a user
+        try {
+            res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
+            Assertions.assertNotNull(res);
+        } catch (AlreadyTakenException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Log the user out
+        try {
+            userService.logout(new LogoutRequest(res.authToken()));
+        } catch (UnauthorizedException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Try logging out again (should fail)
+        try {
+            userService.logout(new LogoutRequest(res.authToken()));
+            Assertions.fail();
+        } catch (UnauthorizedException _) {
+        }
+    }
+
+    @Test
+    public void logoutNormal() {
+        RegisterResult res1;
+        LoginResult res2 = null;
+        // Register a user
+        try {
+            res1 = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
+            Assertions.assertNotNull(res1);
+        } catch (AlreadyTakenException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Log in the user
+        try {
+            res2 = userService.login(new LoginRequest("test1", "test2"));
+            Assertions.assertNotNull(res2);
+        } catch (UnauthorizedException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Log the user out with the most recent auth token
+        try {
+            userService.logout(new LogoutRequest(res2.authToken()));
+        } catch (UnauthorizedException e) {
+            Assertions.fail(e.getMessage());
+        }
     }
 
 }
