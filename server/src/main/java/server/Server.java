@@ -59,15 +59,20 @@ public class Server {
         String reqJson = ctx.body();
         var req = serializer.fromJson(reqJson, Map.class);
 
-        // Get the serialized input from the JSON
-        var username = req.get("username").toString();
-        var password = req.get("password").toString();
-        var email = req.get("email").toString();
+        // Make sure the JSON body is valid
+        var usernameReq = req.get("username");
+        var passwordReq = req.get("password");
+        var emailReq = req.get("email");
 
-        if (username == null || password == null || email == null) {
+        if (usernameReq == null || passwordReq == null || emailReq == null) {
             returnError(ctx, "bad request", 400);
             return;
         }
+
+        // Get the serialized input from the JSON
+        var username = usernameReq.toString();
+        var password = passwordReq.toString();
+        var email = emailReq.toString();
 
         // create a new register request for the specified user
         var registerRequest = new RegisterRequest(username, password, email);
@@ -91,14 +96,18 @@ public class Server {
         String reqJson = ctx.body();
         var req = serializer.fromJson(reqJson, Map.class);
 
-        // Get the serialized input from the JSON
-        var username = req.get("username").toString();
-        var password = req.get("password").toString();
+        // Make sure the JSON body is valid
+        var usernameReq = req.get("username");
+        var passwordReq = req.get("password");
 
-        if (username == null || password == null) {
+        if (usernameReq == null || passwordReq == null) {
             returnError(ctx, "bad request", 400);
             return;
         }
+
+        // Get the serialized input from the JSON
+        var username = usernameReq.toString();
+        var password = passwordReq.toString();
 
         // create a new login request for the specified user
         var loginRequest = new LoginRequest(username, password);
@@ -153,15 +162,17 @@ public class Server {
         String reqJson = ctx.body();
         var req = serializer.fromJson(reqJson, Map.class);
 
-        // Create a createGame request
-        String gameName = req.get("gameName").toString();
+        // Validate the request
         String authToken = ctx.header("authorization");
+        var gameNameReq = req.get("gameName");
 
-        if (authToken == null || gameName == null) {
+        if (authToken == null || gameNameReq == null) {
             returnError(ctx, "bad request", 400);
             return;
         }
 
+        // Create a createGame request
+        String gameName = gameNameReq.toString();
         var createGameRequest = new CreateGameRequest(authToken, gameName);
         var res = Map.of();
 
@@ -182,19 +193,27 @@ public class Server {
         String reqJson = ctx.body();
         var req = serializer.fromJson(reqJson, Map.class);
 
-        // Create a joinGame request
-        String playerColor = req.get("playerColor").toString();
-        String gameIDStr = req.get("gameID").toString();
+        // Validate the request
+        var playerColorReq = req.get("playerColor");
+        var gameIDReq = req.get("gameID");
         String authToken = ctx.header("authorization");
 
-        if (!(playerColor.equals("WHITE") || playerColor.equals("BLACK"))
-                || gameIDStr == null || authToken == null) {
+        if (playerColorReq == null|| gameIDReq == null || authToken == null) {
             returnError(ctx, "bad request", 400);
             return;
         }
 
-        Integer gameID = Integer.parseInt(gameIDStr);
+        // Ensure the player color is in the expected format
+        String playerColor = playerColorReq.toString();
+        if (!(playerColor.equals("WHITE") || playerColor.equals("BLACK"))) {
+            returnError(ctx, "bad request", 400);
+            return;
+        }
 
+        // Convert the gameID to an Integer
+        Integer gameID = ((Double) gameIDReq).intValue();
+
+        // Create a joinGame request
         var joinGameRequest = new JoinGameRequest(authToken, playerColor, gameID);
         var res = Map.of();
 
