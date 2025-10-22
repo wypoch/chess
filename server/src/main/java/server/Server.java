@@ -24,8 +24,6 @@ public class Server {
     private final Javalin server;
 //     private static final Logger logger = Logger.getLogger(Server.class.getName());
 
-    private final MemoryUserDataAccess dataAccess;
-    private final MemoryAuthDataAccess authAccess;
     private final UserService userService;
 
     public Server() {
@@ -36,8 +34,8 @@ public class Server {
         server.post("session", this::login);
         server.delete("session", this::logout);
 
-        dataAccess = new MemoryUserDataAccess();
-        authAccess = new MemoryAuthDataAccess();
+        MemoryUserDataAccess dataAccess = new MemoryUserDataAccess();
+        MemoryAuthDataAccess authAccess = new MemoryAuthDataAccess();
         userService = new UserService(dataAccess, authAccess);
     }
 
