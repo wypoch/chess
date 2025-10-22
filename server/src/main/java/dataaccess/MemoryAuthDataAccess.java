@@ -10,32 +10,17 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
 
     @Override
     public void createAuth(AuthData auth) {
-        authDataSaved.put(auth.username(), auth);
-    }
-
-    @Override
-    public void updateAuth(AuthData auth) throws DataAccessException {
-        String target = auth.username();
-        if (!(authDataSaved.containsKey(target))) {
-            throw new DataAccessException("cannot update AuthData which doesn't exist");
-        }
-        authDataSaved.put(target, auth);
+        authDataSaved.put(auth.authToken(), auth);
     }
 
     @Override
     public AuthData getAuth(String authToken) {
-        for (var username : authDataSaved.keySet()) {
-            var authData = authDataSaved.get(username);
-            if (authData.authToken().equals(authToken)) {
-                return authData;
-            }
-        }
-        return null;
+        return authDataSaved.get(authToken);
     }
 
     @Override
     public void deleteAuth(AuthData auth) throws DataAccessException {
-        String target = auth.username();
+        String target = auth.authToken();
         if (!(authDataSaved.containsKey(target))) {
             throw new DataAccessException("cannot delete AuthData which doesn't exist");
         }

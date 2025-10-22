@@ -54,7 +54,7 @@ public record UserService(UserDataAccess userDataAccess, AuthDataAccess authData
             String authToken = UUID.randomUUID().toString();
 
             var authData = new AuthData(authToken, username);
-            authDataAccess.updateAuth(authData);
+            authDataAccess.createAuth(authData);
 
             return new LoginResult(username, authToken);
         }
