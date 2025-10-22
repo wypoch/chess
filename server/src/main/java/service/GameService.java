@@ -23,7 +23,7 @@ public class GameService {
     private final GameDataAccess gameDataAccess;
 
     public GameService(AuthDataAccess authDataAccess, GameDataAccess gameDataAccess) {
-        currGameID = 0;
+        currGameID = 1;
         this.authDataAccess = authDataAccess;
         this.gameDataAccess = gameDataAccess;
     }

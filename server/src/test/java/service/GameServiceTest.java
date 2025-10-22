@@ -78,9 +78,9 @@ public class GameServiceTest {
             Assertions.fail(e.getMessage());
         }
 
-        // Try joining a non-existent game (game ID 0)
+        // Try joining a non-existent game (game ID 1)
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 0));
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 1));
             Assertions.fail();
         } catch (Exception _) {
         }
@@ -94,28 +94,28 @@ public class GameServiceTest {
 
         // Try joining the game with a bad playerColor
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken(), "BROWN", 0));
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BROWN", 1));
             Assertions.fail();
         } catch (Exception _) {
         }
 
         // Try joining the game with a bad auth token
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken() + "0", "BLACK", 0));
+            gameService.joinGame(new JoinGameRequest(res.authToken() + "0", "BLACK", 1));
             Assertions.fail();
         } catch (Exception _) {
         }
 
         // Join the game successfully
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 0));
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 1));
         } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
 
         // Try joining again as the black player
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 0));
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 1));
             Assertions.fail();
         } catch (Exception _) {
         }
@@ -141,7 +141,7 @@ public class GameServiceTest {
 
         // Join the game successfully as the white player
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 0));
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 1));
         } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
@@ -156,7 +156,7 @@ public class GameServiceTest {
 
         // Join the game successfully as the black player
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 0));
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 1));
         } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
@@ -209,7 +209,7 @@ public class GameServiceTest {
 
         // Join the game successfully as the white player
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 0));
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 1));
         } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
@@ -223,7 +223,7 @@ public class GameServiceTest {
         }
 
         // Ensure that the list contains the game we just set up
-        var testData = new GameData(0, "test1", null, "test", null);
+        var testData = new GameData(1, "test1", null, "test", null);
         Assertions.assertTrue(res2.gameDataList().contains(testData));
     }
 }
