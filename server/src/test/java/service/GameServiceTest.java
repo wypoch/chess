@@ -44,7 +44,8 @@ public class GameServiceTest {
         try {
             gameService.createGame(new CreateGameRequest(res.authToken() + "0", "test"));
             Assertions.fail();
-        } catch (Exception _) {
+        } catch (Exception e) {
+
         }
     }
 
@@ -82,7 +83,7 @@ public class GameServiceTest {
         try {
             gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 1));
             Assertions.fail();
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
 
         // Create a game
@@ -96,14 +97,14 @@ public class GameServiceTest {
         try {
             gameService.joinGame(new JoinGameRequest(res.authToken(), "BROWN", 1));
             Assertions.fail();
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
 
         // Try joining the game with a bad auth token
         try {
             gameService.joinGame(new JoinGameRequest(res.authToken() + "0", "BLACK", 1));
             Assertions.fail();
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
 
         // Join the game successfully
@@ -117,7 +118,7 @@ public class GameServiceTest {
         try {
             gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 1));
             Assertions.fail();
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
     }
 
@@ -178,7 +179,7 @@ public class GameServiceTest {
         try {
             gameService.listGames(new ListGamesRequest(res.authToken() + "0"));
             Assertions.fail();
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
     }
 
