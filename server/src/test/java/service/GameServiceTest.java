@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.creategame.CreateGameRequest;
 import service.exception.AlreadyTakenException;
+import service.joingame.JoinGameRequest;
 import service.register.RegisterRequest;
 import service.register.RegisterResult;
 
@@ -61,5 +62,101 @@ public class GameServiceTest {
         } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
+    }
+
+    @Test
+    public void joinGameInvalid() {
+        RegisterResult res = null;
+        // Register a user
+        try {
+            res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
+            Assertions.assertNotNull(res);
+        } catch (AlreadyTakenException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Try joining a non-existent game (game ID 0)
+        try {
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 0));
+            Assertions.fail();
+        } catch (Exception _) {
+        }
+
+        // Create a game
+        try {
+            gameService.createGame(new CreateGameRequest(res.authToken(), "test"));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Try joining the game with a bad playerColor
+        try {
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BROWN", 0));
+            Assertions.fail();
+        } catch (Exception _) {
+        }
+
+        // Try joining the game with a bad auth token
+        try {
+            gameService.joinGame(new JoinGameRequest(res.authToken() + "0", "BLACK", 0));
+            Assertions.fail();
+        } catch (Exception _) {
+        }
+
+        // Join the game successfully
+        try {
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 0));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Try joining again as the black player
+        try {
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 0));
+            Assertions.fail();
+        } catch (Exception _) {
+        }
+    }
+
+    @Test
+    public void joinGameNormal() {
+        RegisterResult res = null;
+        // Register a user
+        try {
+            res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
+            Assertions.assertNotNull(res);
+        } catch (AlreadyTakenException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Create a game
+        try {
+            gameService.createGame(new CreateGameRequest(res.authToken(), "test"));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Join the game successfully as the white player
+        try {
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 0));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Register a new user
+        try {
+            res = userService.register(new RegisterRequest("test4", "test5", "test6@xyz.com"));
+            Assertions.assertNotNull(res);
+        } catch (AlreadyTakenException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Join the game successfully as the black player
+        try {
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 0));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
     }
 }
