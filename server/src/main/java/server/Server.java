@@ -6,6 +6,7 @@ import dataaccess.MemoryGameDataAccess;
 import dataaccess.MemoryUserDataAccess;
 import dataaccess.MemoryAuthDataAccess;
 import service.exception.AlreadyTakenException;
+import service.exception.BadRequestException;
 import service.exception.MissingGameException;
 import service.exception.UnauthorizedException;
 
@@ -206,11 +207,14 @@ public class Server {
         catch (UnauthorizedException e) {
             returnError(ctx, e.getMessage(), 401);
         }
-        catch (MissingGameException e) {
+        catch (MissingGameException | DataAccessException e) {
             returnError(ctx, e.getMessage(), 500);
         }
         catch (AlreadyTakenException e) {
             returnError(ctx, e.getMessage(), 403);
+        }
+        catch (BadRequestException e) {
+            returnError(ctx, e.getMessage(), 400);
         }
     }
 

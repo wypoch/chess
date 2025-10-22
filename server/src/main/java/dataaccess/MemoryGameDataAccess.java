@@ -17,4 +17,13 @@ public class MemoryGameDataAccess implements GameDataAccess {
     public GameData getGame(Integer gameID) {
         return gameDataSaved.get(gameID);
     }
+
+    @Override
+    public void updateGame(GameData gameData) throws DataAccessException {
+        Integer target = gameData.gameID();
+        if (!(gameDataSaved.containsKey(target))) {
+            throw new DataAccessException("cannot update GameData which doesn't exist");
+        }
+        gameDataSaved.put(target, gameData);
+    }
 }

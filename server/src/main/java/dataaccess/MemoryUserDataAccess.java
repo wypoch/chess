@@ -15,31 +15,23 @@ public class MemoryUserDataAccess implements UserDataAccess {
 
     @Override
     public UserData getUser(UserData user) {
-        String target = user.username();
-        for (var username : userDataSaved.keySet()) {
-            if (username.equals(target)) {
-                return userDataSaved.get(username);
-            }
-        }
-        return null;
+        return userDataSaved.get(user.username());
     }
 
     @Override
     public UserData loginUser(UserData user) {
         String targetName = user.username();
         String targetPass = user.password();
-        for (var username : userDataSaved.keySet()) {
-            if (username.equals(targetName)) {
-                // Ensure the password is correct
-                var userData = userDataSaved.get(username);
-                if (userData.password().equals(targetPass)) {
-                    return userData;
-                } else {
-                    return null;
-                }
-            }
+
+        var userData = userDataSaved.get(targetName);
+        if (userData == null) {
+            return null;
         }
-        return null;
+        if (userData.password().equals(targetPass)) {
+            return userData;
+        } else {
+            return null;
+        }
     }
 
 }
