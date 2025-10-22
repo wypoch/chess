@@ -13,6 +13,8 @@ import service.exception.BadRequestException;
 import service.exception.MissingGameException;
 import service.joingame.JoinGameRequest;
 import service.exception.UnauthorizedException;
+import service.listgames.ListGamesRequest;
+import service.listgames.ListGamesResult;
 
 public class GameService {
 
@@ -91,6 +93,20 @@ public class GameService {
 
             // we can now safely update the gameData
             gameDataAccess.updateGame(newGameData);
+        }
+    }
+
+    public ListGamesResult listGames(ListGamesRequest listGamesRequest) throws UnauthorizedException {
+        String authToken = listGamesRequest.authToken();
+
+        // try to find the authData associated with the authToken
+        var responseData = authDataAccess.getAuth(authToken);
+        if (responseData == null) {
+            throw new UnauthorizedException("unauthorized");
+        } else {
+            // Get a list of all the GameData
+            var gameDataList = gameDataAccess.listGames();
+            return new ListGamesResult(gameDataList);
         }
     }
 }

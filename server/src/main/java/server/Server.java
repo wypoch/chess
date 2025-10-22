@@ -5,6 +5,7 @@ import dataaccess.DataAccessException;
 import dataaccess.MemoryGameDataAccess;
 import dataaccess.MemoryUserDataAccess;
 import dataaccess.MemoryAuthDataAccess;
+import model.GameData;
 import service.exception.AlreadyTakenException;
 import service.exception.BadRequestException;
 import service.exception.MissingGameException;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import service.UserService;
 import service.GameService;
 import service.joingame.JoinGameRequest;
+import service.listgames.ListGamesRequest;
 import service.login.LoginRequest;
 import service.logout.LogoutRequest;
 import service.register.RegisterRequest;
@@ -25,6 +27,8 @@ import service.creategame.CreateGameRequest;
 // import java.util.logging.Level;
 // import java.util.logging.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Server {
@@ -44,6 +48,7 @@ public class Server {
         server.delete("session", this::logout);
         server.post("game", this::createGame);
         server.put("game", this::joinGame);
+        server.get("game", this::listGames);
 
         MemoryUserDataAccess dataAccess = new MemoryUserDataAccess();
         MemoryAuthDataAccess authAccess = new MemoryAuthDataAccess();
@@ -134,11 +139,6 @@ public class Server {
         String authToken = ctx.header("authorization");
         // logger.log(Level.SEVERE, String.format("My authToken: %s", authToken));
 
-        if (authToken == null) {
-            returnError(ctx, "bad request", 400);
-            return;
-        }
-
         var logoutRequest = new LogoutRequest(authToken);
         var res = Map.of();
 
@@ -166,7 +166,7 @@ public class Server {
         String authToken = ctx.header("authorization");
         var gameNameReq = req.get("gameName");
 
-        if (authToken == null || gameNameReq == null) {
+        if (gameNameReq == null) {
             returnError(ctx, "bad request", 400);
             return;
         }
@@ -198,7 +198,7 @@ public class Server {
         var gameIDReq = req.get("gameID");
         String authToken = ctx.header("authorization");
 
-        if (playerColorReq == null|| gameIDReq == null || authToken == null) {
+        if (playerColorReq == null || gameIDReq == null) {
             returnError(ctx, "bad request", 400);
             return;
         }
@@ -234,6 +234,26 @@ public class Server {
         }
         catch (BadRequestException e) {
             returnError(ctx, e.getMessage(), 400);
+        }
+    }
+
+    private void listGames(@NotNull Context ctx) {
+        // Grab the auth token and create a list games request
+        String authToken = ctx.header("authorization");
+
+        var listGamesRequest = new ListGamesRequest(authToken);
+
+        // try to list the games
+        try {
+            var listGamesResult = gameService.listGames(listGamesRequest);
+            List<GameData> gamesList = new ArrayList<>(listGamesResult.gameDataList());
+            var serializer = new Gson();
+            var res = Map.of("games", gamesList);
+            ctx.result(serializer.toJson(res));
+        }
+        // handle exception
+        catch (UnauthorizedException e) {
+            returnError(ctx, e.getMessage(), 401);
         }
     }
 

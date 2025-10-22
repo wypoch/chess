@@ -1,12 +1,15 @@
 package service;
 
 import dataaccess.*;
+import model.GameData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.creategame.CreateGameRequest;
 import service.exception.AlreadyTakenException;
 import service.joingame.JoinGameRequest;
+import service.listgames.ListGamesRequest;
+import service.listgames.ListGamesResult;
 import service.register.RegisterRequest;
 import service.register.RegisterResult;
 
@@ -158,5 +161,69 @@ public class GameServiceTest {
             Assertions.fail(e.getMessage());
         }
 
+    }
+
+    @Test
+    public void listGamesInvalid() {
+        RegisterResult res = null;
+        // Register a user
+        try {
+            res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
+            Assertions.assertNotNull(res);
+        } catch (AlreadyTakenException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Try listing games with a bad auth token (should fail)
+        try {
+            gameService.listGames(new ListGamesRequest(res.authToken() + "0"));
+            Assertions.fail();
+        } catch (Exception _) {
+        }
+    }
+
+    @Test
+    public void listGamesNormal() {
+        RegisterResult res = null;
+        // Register a user
+        try {
+            res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
+            Assertions.assertNotNull(res);
+        } catch (AlreadyTakenException e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // List the current games
+        try {
+            gameService.listGames(new ListGamesRequest(res.authToken()));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Create a game
+        try {
+            gameService.createGame(new CreateGameRequest(res.authToken(), "test"));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Join the game successfully as the white player
+        try {
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 0));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        ListGamesResult res2 = null;
+        // List the current games
+        try {
+            res2 = gameService.listGames(new ListGamesRequest(res.authToken()));
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
+
+        // Ensure that the list contains the game we just set up
+        var testData = new GameData(0, "test1", null, "test", null);
+        Assertions.assertTrue(res2.gameDataList().contains(testData));
     }
 }
