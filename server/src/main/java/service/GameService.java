@@ -6,6 +6,8 @@ import model.GameData;
 
 import service.creategame.CreateGameRequest;
 import service.creategame.CreateGameResult;
+import service.exception.AlreadyTakenException;
+import service.exception.MissingGameException;
 import service.joingame.JoinGameRequest;
 import service.exception.UnauthorizedException;
 
@@ -42,7 +44,21 @@ public class GameService {
         }
     }
 
-    public void joinGame(JoinGameRequest joinGameRequest) throws UnauthorizedException {
-        return;
+    public void joinGame(JoinGameRequest joinGameRequest) throws UnauthorizedException, MissingGameException, AlreadyTakenException {
+        String authToken = joinGameRequest.authToken();
+
+        // try to find the authData associated with the authToken
+        var responseData = authDataAccess.getAuth(authToken);
+        if (responseData == null) {
+            throw new UnauthorizedException("unauthorized");
+        } else {
+            // get gameData for the game
+            var gameData = gameDataAccess.getGame(joinGameRequest.gameID());
+            if (gameData == null) {
+                throw new MissingGameException("game does not exist");
+            }
+
+
+        }
     }
 }

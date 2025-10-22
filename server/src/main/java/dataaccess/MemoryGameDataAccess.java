@@ -12,4 +12,9 @@ public class MemoryGameDataAccess implements GameDataAccess {
     public void createGame(GameData gameData) {
         gameDataSaved.put(gameData.gameID(), gameData);
     }
+
+    @Override
+    public GameData getGame(Integer gameID) {
+        return gameDataSaved.get(gameID);
+    }
 }

@@ -6,6 +6,7 @@ import dataaccess.MemoryGameDataAccess;
 import dataaccess.MemoryUserDataAccess;
 import dataaccess.MemoryAuthDataAccess;
 import service.exception.AlreadyTakenException;
+import service.exception.MissingGameException;
 import service.exception.UnauthorizedException;
 
 import io.javalin.*;
@@ -62,6 +63,11 @@ public class Server {
         var password = req.get("password").toString();
         var email = req.get("email").toString();
 
+        if (username == null || password == null || email == null) {
+            returnError(ctx, "bad request", 400);
+            return;
+        }
+
         // create a new register request for the specified user
         var registerRequest = new RegisterRequest(username, password, email);
         var res = Map.of();
@@ -75,9 +81,7 @@ public class Server {
         }
         // handle exception
         catch (AlreadyTakenException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
-            ctx.status(403);
-            ctx.json(body);
+            returnError(ctx, e.getMessage(), 403);
         }
     }
 
@@ -89,6 +93,11 @@ public class Server {
         // Get the serialized input from the JSON
         var username = req.get("username").toString();
         var password = req.get("password").toString();
+
+        if (username == null || password == null) {
+            returnError(ctx, "bad request", 400);
+            return;
+        }
 
         // create a new login request for the specified user
         var loginRequest = new LoginRequest(username, password);
@@ -103,14 +112,10 @@ public class Server {
         }
         // handle exceptions
         catch (UnauthorizedException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
-            ctx.status(401);
-            ctx.json(body);
+            returnError(ctx, e.getMessage(), 401);
         }
         catch (DataAccessException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
-            ctx.status(500);
-            ctx.json(body);
+            returnError(ctx, e.getMessage(), 500);
         }
     }
 
@@ -118,6 +123,11 @@ public class Server {
         // Grab the auth token and create a logout request
         String authToken = ctx.header("authorization");
         // logger.log(Level.SEVERE, String.format("My authToken: %s", authToken));
+
+        if (authToken == null) {
+            returnError(ctx, "bad request", 400);
+            return;
+        }
 
         var logoutRequest = new LogoutRequest(authToken);
         var res = Map.of();
@@ -130,14 +140,10 @@ public class Server {
         }
         // handle exceptions
         catch (UnauthorizedException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
-            ctx.status(401);
-            ctx.json(body);
+            returnError(ctx, e.getMessage(), 401);
         }
         catch (DataAccessException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
-            ctx.status(500);
-            ctx.json(body);
+            returnError(ctx, e.getMessage(), 500);
         }
     }
 
@@ -149,6 +155,12 @@ public class Server {
         // Create a createGame request
         String gameName = req.get("gameName").toString();
         String authToken = ctx.header("authorization");
+
+        if (authToken == null || gameName == null) {
+            returnError(ctx, "bad request", 400);
+            return;
+        }
+
         var createGameRequest = new CreateGameRequest(authToken, gameName);
         var res = Map.of();
 
@@ -158,11 +170,9 @@ public class Server {
             res = Map.of("gameID", createGameResult.gameID());
             ctx.result(serializer.toJson(res));
         }
-        // handle exceptions
+        // handle exception
         catch (UnauthorizedException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
-            ctx.status(401);
-            ctx.json(body);
+            returnError(ctx, e.getMessage(), 401);
         }
     }
 
@@ -173,8 +183,16 @@ public class Server {
 
         // Create a joinGame request
         String playerColor = req.get("playerColor").toString();
-        Integer gameID = Integer.parseInt(req.get("gameID").toString());
+        String gameIDStr = req.get("gameID").toString();
         String authToken = ctx.header("authorization");
+
+        if (!(playerColor.equals("WHITE") || playerColor.equals("BLACK"))
+                || gameIDStr == null || authToken == null) {
+            returnError(ctx, "bad request", 400);
+            return;
+        }
+
+        Integer gameID = Integer.parseInt(gameIDStr);
 
         var joinGameRequest = new JoinGameRequest(authToken, playerColor, gameID);
         var res = Map.of();
@@ -186,10 +204,20 @@ public class Server {
         }
         // handle exceptions
         catch (UnauthorizedException e) {
-            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
-            ctx.status(401);
-            ctx.json(body);
+            returnError(ctx, e.getMessage(), 401);
         }
+        catch (MissingGameException e) {
+            returnError(ctx, e.getMessage(), 500);
+        }
+        catch (AlreadyTakenException e) {
+            returnError(ctx, e.getMessage(), 403);
+        }
+    }
+
+    private void returnError(@NotNull Context ctx, String message, Integer status) {
+        var body = new Gson().toJson(Map.of("message", String.format("Error: %s", message)));
+        ctx.status(status);
+        ctx.json(body);
     }
 
     public int run(int desiredPort) {
