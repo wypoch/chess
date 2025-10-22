@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import service.UserService;
 import service.GameService;
+import service.joingame.JoinGameRequest;
 import service.login.LoginRequest;
 import service.logout.LogoutRequest;
 import service.register.RegisterRequest;
@@ -40,6 +41,7 @@ public class Server {
         server.post("session", this::login);
         server.delete("session", this::logout);
         server.post("game", this::createGame);
+        server.put("game", this::joinGame);
 
         MemoryUserDataAccess dataAccess = new MemoryUserDataAccess();
         MemoryAuthDataAccess authAccess = new MemoryAuthDataAccess();
@@ -154,6 +156,32 @@ public class Server {
         try {
             var createGameResult = gameService.createGame(createGameRequest);
             res = Map.of("gameID", createGameResult.gameID());
+            ctx.result(serializer.toJson(res));
+        }
+        // handle exceptions
+        catch (UnauthorizedException e) {
+            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
+            ctx.status(401);
+            ctx.json(body);
+        }
+    }
+
+    private void joinGame(@NotNull Context ctx) {
+        var serializer = new Gson();
+        String reqJson = ctx.body();
+        var req = serializer.fromJson(reqJson, Map.class);
+
+        // Create a joinGame request
+        String playerColor = req.get("playerColor").toString();
+        Integer gameID = Integer.parseInt(req.get("gameID").toString());
+        String authToken = ctx.header("authorization");
+
+        var joinGameRequest = new JoinGameRequest(authToken, playerColor, gameID);
+        var res = Map.of();
+
+        // try to join the game
+        try {
+            gameService.joinGame(joinGameRequest);
             ctx.result(serializer.toJson(res));
         }
         // handle exceptions

@@ -9,7 +9,7 @@ public class MemoryUserDataAccess implements UserDataAccess {
     private final HashMap<String, UserData> userDataSaved = new HashMap<>();
 
     @Override
-    public void saveUser(UserData user) {
+    public void createUser(UserData user) {
         userDataSaved.put(user.username(), user);
     }
 

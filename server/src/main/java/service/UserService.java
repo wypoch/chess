@@ -29,7 +29,7 @@ public record UserService(UserDataAccess userDataAccess, AuthDataAccess authData
         }
         // save the user to the database and generate an auth token
         else {
-            userDataAccess.saveUser(userData);
+            userDataAccess.createUser(userData);
             String authToken = UUID.randomUUID().toString();
 
             var authData = new AuthData(authToken, username);

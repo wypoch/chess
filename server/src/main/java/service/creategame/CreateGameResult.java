@@ -1,4 +1,4 @@
 package service.creategame;
 
-public record CreateGameResult(String gameID) {
+public record CreateGameResult(Integer gameID) {
 }
