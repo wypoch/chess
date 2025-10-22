@@ -1,8 +1,10 @@
 package service;
 
 import service.exception.AlreadyTakenException;
-import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
+import dataaccess.UserDataAccess;
+import dataaccess.AuthDataAccess;
+import dataaccess.MemoryUserDataAccess;
+import dataaccess.MemoryAuthDataAccess;
 import service.exception.UnauthorizedException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,13 +17,15 @@ import service.register.RegisterResult;
 
 public class UserServiceTest {
 
-    DataAccess dataAccess;
+    UserDataAccess userDataAccess;
+    AuthDataAccess authDataAccess;
     UserService userService;
 
     @BeforeEach
     public void setup() {
-        dataAccess = new MemoryDataAccess();
-        userService = new UserService(dataAccess);
+        userDataAccess = new MemoryUserDataAccess();
+        authDataAccess = new MemoryAuthDataAccess();
+        userService = new UserService(userDataAccess, authDataAccess);
     }
 
     @Test

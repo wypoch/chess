@@ -2,9 +2,10 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
+import dataaccess.MemoryUserDataAccess;
+import dataaccess.MemoryAuthDataAccess;
 import service.exception.AlreadyTakenException;
 import service.exception.UnauthorizedException;
-import dataaccess.MemoryDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,8 @@ public class Server {
     private final Javalin server;
 //     private static final Logger logger = Logger.getLogger(Server.class.getName());
 
-    private final MemoryDataAccess dataAccess;
+    private final MemoryUserDataAccess dataAccess;
+    private final MemoryAuthDataAccess authAccess;
     private final UserService userService;
 
     public Server() {
@@ -34,8 +36,9 @@ public class Server {
         server.post("session", this::login);
         server.delete("session", this::logout);
 
-        dataAccess = new MemoryDataAccess();
-        userService = new UserService(dataAccess);
+        dataAccess = new MemoryUserDataAccess();
+        authAccess = new MemoryAuthDataAccess();
+        userService = new UserService(dataAccess, authAccess);
     }
 
     private void register(@NotNull Context ctx) {

@@ -1,6 +1,7 @@
 package service;
 
-import dataaccess.DataAccess;
+import dataaccess.AuthDataAccess;
+import dataaccess.UserDataAccess;
 import dataaccess.DataAccessException;
 import service.exception.AlreadyTakenException;
 import service.exception.UnauthorizedException;
@@ -14,13 +15,7 @@ import service.logout.LogoutRequest;
 
 import java.util.UUID;
 
-public class UserService {
-
-    private final DataAccess dataAccess;
-
-    public UserService(DataAccess dataAccess) {
-        this.dataAccess = dataAccess;
-    }
+public record UserService(UserDataAccess userDataAccess, AuthDataAccess authDataAccess) {
 
     public RegisterResult register(RegisterRequest registerRequest) throws AlreadyTakenException {
         String username = registerRequest.username();
@@ -28,17 +23,17 @@ public class UserService {
         var userData = new UserData(username, registerRequest.password(), registerRequest.email());
 
         // ensure the user doesn't already exist in the database
-        var responseData = dataAccess.getUser(userData);
+        var responseData = userDataAccess.getUser(userData);
         if (responseData != null) {
             throw new AlreadyTakenException("username already taken");
         }
         // save the user to the database and generate an auth token
         else {
-            dataAccess.saveUser(userData);
+            userDataAccess.saveUser(userData);
             String authToken = UUID.randomUUID().toString();
 
             var authData = new AuthData(authToken, username);
-            dataAccess.createAuth(authData);
+            authDataAccess.createAuth(authData);
 
             return new RegisterResult(username, authToken);
         }
@@ -50,7 +45,7 @@ public class UserService {
         var userData = new UserData(username, loginRequest.password(), null);
 
         // ensure the username/password combo is correct
-        var responseData = dataAccess.loginUser(userData);
+        var responseData = userDataAccess.loginUser(userData);
         if (responseData == null) {
             throw new UnauthorizedException("unauthorized");
         }
@@ -59,7 +54,7 @@ public class UserService {
             String authToken = UUID.randomUUID().toString();
 
             var authData = new AuthData(authToken, username);
-            dataAccess.updateAuth(authData);
+            authDataAccess.updateAuth(authData);
 
             return new LoginResult(username, authToken);
         }
@@ -70,13 +65,13 @@ public class UserService {
         String authToken = logoutRequest.authToken();
 
         // try to find the authData associated with the authToken
-        var responseData = dataAccess.getAuth(authToken);
+        var responseData = authDataAccess.getAuth(authToken);
         if (responseData == null) {
             throw new UnauthorizedException("unauthorized");
         }
         // assuming we found the authData, delete it
         else {
-            dataAccess.deleteAuth(responseData);
+            authDataAccess.deleteAuth(responseData);
         }
     }
 }
