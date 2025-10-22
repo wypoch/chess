@@ -1,8 +1,9 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.AlreadyTakenException;
-import dataaccess.UnauthorizedException;
+import dataaccess.DataAccessException;
+import service.exception.AlreadyTakenException;
+import service.exception.UnauthorizedException;
 import dataaccess.MemoryDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -12,15 +13,15 @@ import service.login.LoginRequest;
 import service.logout.LogoutRequest;
 import service.register.RegisterRequest;
 
- import java.util.logging.Level;
- import java.util.logging.Logger;
+// import java.util.logging.Level;
+// import java.util.logging.Logger;
 
 import java.util.Map;
 
 public class Server {
 
     private final Javalin server;
-     private static final Logger logger = Logger.getLogger(Server.class.getName());
+//     private static final Logger logger = Logger.getLogger(Server.class.getName());
 
     private final MemoryDataAccess dataAccess;
     private final UserService userService;
@@ -87,10 +88,15 @@ public class Server {
                     "authToken", loginResult.authToken());
             ctx.result(serializer.toJson(res));
         }
-        // handle exception
+        // handle exceptions
         catch (UnauthorizedException e) {
             var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
             ctx.status(401);
+            ctx.json(body);
+        }
+        catch (DataAccessException e) {
+            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
+            ctx.status(500);
             ctx.json(body);
         }
     }
@@ -98,7 +104,8 @@ public class Server {
     private void logout(@NotNull Context ctx) {
         // Grab the auth token and create a logout request
         String authToken = ctx.header("authorization");
-        logger.log(Level.SEVERE, String.format("My authToken: %s", authToken));
+        // logger.log(Level.SEVERE, String.format("My authToken: %s", authToken));
+
         var logoutRequest = new LogoutRequest(authToken);
         var res = Map.of();
 
@@ -109,10 +116,15 @@ public class Server {
             var serializer = new Gson();
             ctx.result(serializer.toJson(res));
         }
-        // handle exception
+        // handle exceptions
         catch (UnauthorizedException e) {
             var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
             ctx.status(401);
+            ctx.json(body);
+        }
+        catch (DataAccessException e) {
+            var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage())));
+            ctx.status(500);
             ctx.json(body);
         }
     }

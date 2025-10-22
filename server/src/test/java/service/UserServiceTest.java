@@ -1,9 +1,9 @@
 package service;
 
-import dataaccess.AlreadyTakenException;
+import service.exception.AlreadyTakenException;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
-import dataaccess.UnauthorizedException;
+import service.exception.UnauthorizedException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import service.logout.LogoutRequest;
 import service.register.RegisterRequest;
 import service.register.RegisterResult;
 
-public class ServiceTest {
+public class UserServiceTest {
 
     DataAccess dataAccess;
     UserService userService;
@@ -100,7 +100,7 @@ public class ServiceTest {
         // Log the user out
         try {
             userService.logout(new LogoutRequest(res.authToken()));
-        } catch (UnauthorizedException e) {
+        } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
 
@@ -108,7 +108,7 @@ public class ServiceTest {
         try {
             userService.logout(new LogoutRequest(res.authToken()));
             Assertions.fail();
-        } catch (UnauthorizedException _) {
+        } catch (Exception _) {
         }
     }
 
@@ -128,14 +128,14 @@ public class ServiceTest {
         try {
             res2 = userService.login(new LoginRequest("test1", "test2"));
             Assertions.assertNotNull(res2);
-        } catch (UnauthorizedException e) {
+        } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
 
         // Log the user out with the most recent auth token
         try {
             userService.logout(new LogoutRequest(res2.authToken()));
-        } catch (UnauthorizedException e) {
+        } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
     }

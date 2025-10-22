@@ -38,8 +38,11 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void deleteAuth(AuthData auth) {
+    public void deleteAuth(AuthData auth) throws DataAccessException {
         String target = auth.username();
+        if (!(authDataSaved.containsKey(target))) {
+            throw new DataAccessException("cannot delete AuthData which doesn't exist");
+        }
         authDataSaved.remove(target);
     }
 
@@ -67,8 +70,11 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void updateAuth(AuthData auth) {
+    public void updateAuth(AuthData auth) throws DataAccessException {
         String target = auth.username();
+        if (!(authDataSaved.containsKey(target))) {
+            throw new DataAccessException("cannot update AuthData which doesn't exist");
+        }
         authDataSaved.put(target, auth);
     }
 

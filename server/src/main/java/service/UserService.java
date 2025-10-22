@@ -1,8 +1,9 @@
 package service;
 
 import dataaccess.DataAccess;
-import dataaccess.AlreadyTakenException;
-import dataaccess.UnauthorizedException;
+import dataaccess.DataAccessException;
+import service.exception.AlreadyTakenException;
+import service.exception.UnauthorizedException;
 import model.UserData;
 import model.AuthData;
 import service.login.LoginRequest;
@@ -43,7 +44,7 @@ public class UserService {
         }
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws UnauthorizedException {
+    public LoginResult login(LoginRequest loginRequest) throws UnauthorizedException, DataAccessException {
         String username = loginRequest.username();
 
         var userData = new UserData(username, loginRequest.password(), null);
@@ -65,7 +66,7 @@ public class UserService {
 
     }
 
-    public void logout(LogoutRequest logoutRequest) throws UnauthorizedException {
+    public void logout(LogoutRequest logoutRequest) throws UnauthorizedException, DataAccessException {
         String authToken = logoutRequest.authToken();
 
         // try to find the authData associated with the authToken

@@ -7,7 +7,7 @@ public interface DataAccess {
     UserData getUser(UserData user);
     UserData loginUser(UserData user);
     void createAuth(AuthData auth);
-    void updateAuth(AuthData auth);
+    void updateAuth(AuthData auth) throws DataAccessException;
     AuthData getAuth(String authToken);
-    void deleteAuth(AuthData auth);
+    void deleteAuth(AuthData auth) throws DataAccessException;
 }
