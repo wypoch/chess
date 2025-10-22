@@ -39,4 +39,9 @@ public class MemoryGameDataAccess implements GameDataAccess {
         }
         return gamesList;
     }
+
+    @Override
+    public void clear() {
+        gameDataSaved.clear();
+    }
 }

@@ -9,4 +9,5 @@ public interface GameDataAccess {
     GameData getGame(Integer gameID);
     void updateGame(GameData gameData) throws DataAccessException;
     HashSet<GameData> listGames();
+    void clear();
 }

@@ -6,6 +6,7 @@ import dataaccess.MemoryGameDataAccess;
 import dataaccess.MemoryUserDataAccess;
 import dataaccess.MemoryAuthDataAccess;
 import model.GameData;
+
 import service.exception.AlreadyTakenException;
 import service.exception.BadRequestException;
 import service.exception.MissingGameException;
@@ -17,6 +18,8 @@ import org.jetbrains.annotations.NotNull;
 
 import service.UserService;
 import service.GameService;
+import service.DatabaseService;
+
 import service.joingame.JoinGameRequest;
 import service.listgames.ListGamesRequest;
 import service.login.LoginRequest;
@@ -38,6 +41,7 @@ public class Server {
 
     private final UserService userService;
     private final GameService gameService;
+    private final DatabaseService databaseService;
 
     public Server() {
         server = Javalin.create(config -> config.staticFiles.add("web"));
@@ -49,6 +53,7 @@ public class Server {
         server.post("game", this::createGame);
         server.put("game", this::joinGame);
         server.get("game", this::listGames);
+        server.delete("db", this::clear);
 
         MemoryUserDataAccess dataAccess = new MemoryUserDataAccess();
         MemoryAuthDataAccess authAccess = new MemoryAuthDataAccess();
@@ -56,6 +61,7 @@ public class Server {
 
         userService = new UserService(dataAccess, authAccess);
         gameService = new GameService(authAccess, gameAccess);
+        databaseService = new DatabaseService(dataAccess, authAccess, gameAccess);
     }
 
     private void register(@NotNull Context ctx) {
@@ -255,6 +261,14 @@ public class Server {
         catch (UnauthorizedException e) {
             returnError(ctx, e.getMessage(), 401);
         }
+    }
+
+    private void clear(@NotNull Context ctx) {
+        // clear each database
+        databaseService.clear();
+        var serializer = new Gson();
+        var res = Map.of();
+        ctx.result(serializer.toJson(res));
     }
 
     private void returnError(@NotNull Context ctx, String message, Integer status) {

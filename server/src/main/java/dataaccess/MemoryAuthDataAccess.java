@@ -41,4 +41,9 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
         }
         authDataSaved.remove(target);
     }
+
+    @Override
+    public void clear() {
+        authDataSaved.clear();
+    }
 }

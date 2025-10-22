@@ -34,4 +34,9 @@ public class MemoryUserDataAccess implements UserDataAccess {
         }
     }
 
+    @Override
+    public void clear() {
+        userDataSaved.clear();
+    }
+
 }
