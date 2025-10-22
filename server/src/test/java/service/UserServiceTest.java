@@ -112,7 +112,7 @@ public class UserServiceTest {
         try {
             userService.logout(new LogoutRequest(res.authToken()));
             Assertions.fail();
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
     }
 
