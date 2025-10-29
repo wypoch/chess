@@ -1,10 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryGameDataAccess;
-import dataaccess.MemoryUserDataAccess;
-import dataaccess.MemoryAuthDataAccess;
+import dataaccess.*;
 import model.GameData;
 
 import service.exception.AlreadyTakenException;
@@ -55,10 +52,26 @@ public class Server {
         server.get("game", this::listGames);
         server.delete("db", this::clear);
 
-        MemoryUserDataAccess dataAccess = new MemoryUserDataAccess();
-        MemoryAuthDataAccess authAccess = new MemoryAuthDataAccess();
-        MemoryGameDataAccess gameAccess = new MemoryGameDataAccess();
+        // Create the SQL database, if it does not already exist
+        try {
+            DatabaseManager.createDatabase();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
 
+        // Set up each SQL DataAccess layer
+        SQLUserDataAccess dataAccess;
+        SQLAuthDataAccess authAccess;
+        SQLGameDataAccess gameAccess;
+        try {
+            dataAccess = new SQLUserDataAccess();
+            authAccess = new SQLAuthDataAccess();
+            gameAccess = new SQLGameDataAccess();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Set up each of the services
         userService = new UserService(dataAccess, authAccess);
         gameService = new GameService(authAccess, gameAccess);
         databaseService = new DatabaseService(dataAccess, authAccess, gameAccess);
