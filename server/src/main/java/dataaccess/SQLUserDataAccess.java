@@ -3,10 +3,11 @@ package dataaccess;
 import model.UserData;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public class SQLUserDataAccess implements UserDataAccess {
 
-    public SQLUserDataAccess() throws DataAccessException {
+    public SQLUserDataAccess() throws DataAccessException, SQLException {
         configureDatabase();
     }
 
@@ -23,7 +24,7 @@ public class SQLUserDataAccess implements UserDataAccess {
             """
     };
 
-    private void configureDatabase() throws DataAccessException {
+    private void configureDatabase() throws DataAccessException, SQLException {
         DatabaseManager.createDatabase();
         try (Connection conn = DatabaseManager.getConnection()) {
             for (String statement : createStatements) {
@@ -31,8 +32,6 @@ public class SQLUserDataAccess implements UserDataAccess {
                     preparedStatement.executeUpdate();
                 }
             }
-        } catch (Exception e) {
-            throw new DataAccessException(e.getMessage());
         }
     }
 

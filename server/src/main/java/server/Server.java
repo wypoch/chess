@@ -67,7 +67,7 @@ public class Server {
             dataAccess = new SQLUserDataAccess();
             authAccess = new SQLAuthDataAccess();
             gameAccess = new SQLGameDataAccess();
-        } catch (DataAccessException e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
 

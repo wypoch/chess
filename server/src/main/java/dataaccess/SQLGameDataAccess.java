@@ -3,14 +3,14 @@ package dataaccess;
 import model.GameData;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashSet;
 
 public class SQLGameDataAccess implements GameDataAccess {
 
-    public SQLGameDataAccess() throws DataAccessException {
+    public SQLGameDataAccess() throws DataAccessException, SQLException {
         configureDatabase();
     }
-
 
     private final String[] createStatements = {
             """
@@ -28,7 +28,7 @@ public class SQLGameDataAccess implements GameDataAccess {
             """
     };
 
-    private void configureDatabase() throws DataAccessException {
+    private void configureDatabase() throws DataAccessException, SQLException {
         DatabaseManager.createDatabase();
         try (Connection conn = DatabaseManager.getConnection()) {
             for (String statement : createStatements) {
@@ -36,8 +36,6 @@ public class SQLGameDataAccess implements GameDataAccess {
                     preparedStatement.executeUpdate();
                 }
             }
-        } catch (Exception e) {
-            throw new DataAccessException(e.getMessage());
         }
     }
 
