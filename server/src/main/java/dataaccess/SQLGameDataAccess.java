@@ -40,27 +40,27 @@ public class SQLGameDataAccess implements GameDataAccess {
     }
 
     @Override
-    public void createGame(GameData gameData) {
+    public void createGame(GameData gameData) throws DataAccessException, SQLException  {
 
     }
 
     @Override
-    public GameData getGame(Integer gameID) {
+    public GameData getGame(Integer gameID) throws DataAccessException, SQLException  {
         return null;
     }
 
     @Override
-    public void updateGame(GameData gameData) throws DataAccessException {
+    public void updateGame(GameData gameData) throws DataAccessException, SQLException {
 
     }
 
     @Override
-    public HashSet<GameData> listGames() {
+    public HashSet<GameData> listGames() throws DataAccessException, SQLException {
         return null;
     }
 
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException, SQLException {
 
     }
 }

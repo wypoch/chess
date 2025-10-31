@@ -56,11 +56,13 @@ public class Server {
         // Create the SQL database, if it does not already exist
         try {
             DatabaseManager.createDatabase();
-        } catch (DataAccessException e) {
+        }
+        // throw a runtime error if we failed to create the database
+        catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
 
-        // Set up each SQL DataAccess layer
+        // Set up each SQL DataAccess layer and configure the database
         SQLUserDataAccess dataAccess;
         SQLAuthDataAccess authAccess;
         SQLGameDataAccess gameAccess;
@@ -68,7 +70,9 @@ public class Server {
             dataAccess = new SQLUserDataAccess();
             authAccess = new SQLAuthDataAccess();
             gameAccess = new SQLGameDataAccess();
-        } catch (Throwable e) {
+        }
+        // throw a runtime error if we failed to configure the database
+        catch (Throwable e) {
             throw new RuntimeException(e);
         }
 
