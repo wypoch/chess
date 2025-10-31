@@ -5,8 +5,8 @@ import model.UserData;
 import java.sql.SQLException;
 
 public interface UserDataAccess {
-    void createUser(UserData user);
+    void createUser(UserData user) throws DataAccessException, SQLException;
     UserData getUser(UserData user) throws DataAccessException, SQLException;
-    UserData loginUser(UserData user);
-    void clear();
+    UserData loginUser(UserData user) throws DataAccessException, SQLException;
+    void clear() throws DataAccessException, SQLException;
 }

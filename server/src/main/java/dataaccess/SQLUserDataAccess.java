@@ -36,8 +36,16 @@ public class SQLUserDataAccess implements UserDataAccess {
     }
 
     @Override
-    public void createUser(UserData user) {
-
+    public void createUser(UserData user) throws DataAccessException, SQLException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "INSERT INTO userData (username, password, email) VALUES(?, ?, ?)";
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, user.username());
+                preparedStatement.setString(2, user.password());
+                preparedStatement.setString(3, user.email());
+                preparedStatement.executeUpdate();
+            }
+        }
     }
 
     @Override
@@ -60,12 +68,32 @@ public class SQLUserDataAccess implements UserDataAccess {
     }
 
     @Override
-    public UserData loginUser(UserData user) {
+    public UserData loginUser(UserData user) throws DataAccessException, SQLException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT username, password, email FROM userData WHERE username=? AND password=?";
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, user.username());
+                preparedStatement.setString(2, user.password());
+                try (var rs = preparedStatement.executeQuery()) {
+                    if (rs.next()) {
+                        var username = rs.getString("username");
+                        var password = rs.getString("password");
+                        var email = rs.getString("email");
+                        return new UserData(username, password, email);
+                    }
+                }
+            }
+        }
         return null;
     }
 
     @Override
-    public void clear() {
-
+    public void clear() throws DataAccessException, SQLException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "TRUNCATE TABLE userData";
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.executeUpdate();
+            }
+        }
     }
 }

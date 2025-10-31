@@ -152,7 +152,7 @@ public class Server {
         catch (UnauthorizedException e) {
             returnError(ctx, e.getMessage(), 401);
         }
-        catch (DataAccessException e) {
+        catch (DataAccessException | SQLException e) {
             returnError(ctx, e.getMessage(), 500);
         }
     }
@@ -282,7 +282,12 @@ public class Server {
 
     private void clear(@NotNull Context ctx) {
         // clear each database
-        databaseService.clear();
+        try {
+            databaseService.clear();
+        // handle exceptions
+        } catch (DataAccessException | SQLException e) {
+            returnError(ctx, e.getMessage(), 500);
+        }
         var serializer = new Gson();
         var res = Map.of();
         ctx.result(serializer.toJson(res));

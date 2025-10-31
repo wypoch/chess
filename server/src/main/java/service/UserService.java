@@ -40,7 +40,7 @@ public record UserService(UserDataAccess userDataAccess, AuthDataAccess authData
         }
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws UnauthorizedException, DataAccessException {
+    public LoginResult login(LoginRequest loginRequest) throws UnauthorizedException, DataAccessException, SQLException {
         String username = loginRequest.username();
 
         var userData = new UserData(username, loginRequest.password(), null);
