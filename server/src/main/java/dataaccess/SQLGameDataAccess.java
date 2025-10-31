@@ -19,7 +19,7 @@ public class SQLGameDataAccess implements GameDataAccess {
               `whiteUsername` varchar(255),
               `blackUsername` varchar(255),
               `gameName` varchar(255),
-              `game` text,
+              `game` json,
               PRIMARY KEY (`gameId`),
               INDEX(`whiteUsername`),
               INDEX(`blackUsername`),
