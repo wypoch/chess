@@ -68,7 +68,10 @@ public class SQLAuthDataAccess implements AuthDataAccess {
             var statement = "DELETE FROM authData WHERE authToken=?";
             try (var preparedStatement = conn.prepareStatement(statement)) {
                 preparedStatement.setString(1, auth.authToken());
-                preparedStatement.executeUpdate();
+                var numRows = preparedStatement.executeUpdate();
+                if (numRows == 0) {
+                    throw new DataAccessException("cannot delete AuthData which doesn't exist");
+                }
             }
         }
     }

@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 public class UserDataAccessTest {
 
-    SQLUserDataAccess userDataAccess;
+    private SQLUserDataAccess userDataAccess;
 
     @BeforeEach
     public void clearDatabase() {
