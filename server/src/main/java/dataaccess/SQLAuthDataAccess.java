@@ -47,16 +47,39 @@ public class SQLAuthDataAccess implements AuthDataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException, SQLException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT authToken, username FROM authData WHERE authToken=?";
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, authToken);
+                try (var rs = preparedStatement.executeQuery()) {
+                    if (rs.next()) {
+                        var username = rs.getString("username");
+                        return new AuthData(authToken, username);
+                    }
+                }
+            }
+        }
         return null;
     }
 
     @Override
     public void deleteAuth(AuthData auth) throws DataAccessException, SQLException {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "DELETE FROM authData WHERE authToken=?";
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, auth.authToken());
+                preparedStatement.executeUpdate();
+            }
+        }
     }
 
     @Override
     public void clear() throws DataAccessException, SQLException {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "TRUNCATE TABLE authData";
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.executeUpdate();
+            }
+        }
     }
 }
