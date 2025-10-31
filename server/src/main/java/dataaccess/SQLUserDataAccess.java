@@ -8,11 +8,8 @@ import java.sql.SQLException;
 public class SQLUserDataAccess implements UserDataAccess {
 
     public SQLUserDataAccess() throws DataAccessException, SQLException {
-        configureDatabase();
-    }
-
-    private final String[] createStatements = {
-            """
+        String[] createStatements = {
+                """
             CREATE TABLE IF NOT EXISTS userData (
               `username` varchar(255) NOT NULL,
               `password` varchar(255) NOT NULL,
@@ -22,17 +19,8 @@ public class SQLUserDataAccess implements UserDataAccess {
               INDEX(`email`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
-    };
-
-    private void configureDatabase() throws DataAccessException, SQLException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        }
+        };
+        DatabaseManager.configureDatabase(createStatements);
     }
 
     @Override

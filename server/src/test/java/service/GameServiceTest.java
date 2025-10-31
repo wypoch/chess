@@ -207,9 +207,9 @@ public class GameServiceTest {
             Assertions.fail(e.getMessage());
         }
 
-        // Join the game successfully as the white player
+        // Join the game successfully as the black player
         try {
-            gameService.joinGame(new JoinGameRequest(res.authToken(), "WHITE", 1));
+            gameService.joinGame(new JoinGameRequest(res.authToken(), "BLACK", 1));
         } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
@@ -223,7 +223,7 @@ public class GameServiceTest {
         }
 
         // Ensure that the list contains the game we just set up
-        var testData = new GameData(1, "test1", null, "test", null);
+        var testData = new GameData(1, null, "test1", "test", null);
         Assertions.assertTrue(res2.gameDataList().contains(testData));
     }
 }
