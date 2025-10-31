@@ -97,7 +97,7 @@ public class UserServiceTest {
         try {
             res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
             Assertions.assertNotNull(res);
-        } catch (AlreadyTakenException e) {
+        } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
 
@@ -124,7 +124,7 @@ public class UserServiceTest {
         try {
             res1 = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
             Assertions.assertNotNull(res1);
-        } catch (AlreadyTakenException e) {
+        } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
 

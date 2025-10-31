@@ -36,7 +36,7 @@ public class DatabaseServiceTest {
         try {
             res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
             Assertions.assertNotNull(res);
-        } catch (AlreadyTakenException e) {
+        } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
 
@@ -48,13 +48,17 @@ public class DatabaseServiceTest {
         }
 
         // Clear the database
-        databaseService.clear();
+        try {
+            databaseService.clear();
+        } catch (Exception e) {
+            Assertions.fail(e.getMessage());
+        }
 
         // Make sure we can register the same user again
         try {
             res = userService.register(new RegisterRequest("test1", "test2", "test3@xyz.com"));
             Assertions.assertNotNull(res);
-        } catch (AlreadyTakenException e) {
+        } catch (Exception e) {
             Assertions.fail(e.getMessage());
         }
 
