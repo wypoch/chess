@@ -87,38 +87,4 @@ public class UserDataAccessTest {
             Assertions.fail(e.getMessage());
         }
     }
-
-    @Test
-    public void loginUserNormal() {
-        try {
-            // log in a user that hasn't been created yet (expect null)
-            var testUser1 = new UserData("testname", "testpass", "test@xyz.com");
-            var testUser2 = userDataAccess.getUser(testUser1);
-            Assertions.assertNull(testUser2);
-
-            userDataAccess.createUser(testUser1);
-            testUser2 = userDataAccess.loginUser(testUser1);
-            Assertions.assertEquals(testUser1, testUser2);
-
-        } catch (Exception e) {
-            Assertions.fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void loginUserInvalid() {
-        try {
-            // create a user
-            var testUser1 = new UserData("testname", "testpass", "test@xyz.com");
-            userDataAccess.createUser(testUser1);
-
-            // Try to log in another user with the same username but different password than the first (should be null)
-            var testUser2 = new UserData("testname", "testpass2", "test@xyz.com");
-            var testUser3 = userDataAccess.loginUser(testUser2);
-            Assertions.assertNull(testUser3);
-
-        } catch (Exception e) {
-            Assertions.fail(e.getMessage());
-        }
-    }
 }

@@ -3,6 +3,8 @@ package service;
 import dataaccess.AuthDataAccess;
 import dataaccess.UserDataAccess;
 import dataaccess.DataAccessException;
+import org.mindrot.jbcrypt.BCrypt;
+
 import service.exception.AlreadyTakenException;
 import service.exception.UnauthorizedException;
 import model.UserData;
@@ -20,8 +22,10 @@ public record UserService(UserDataAccess userDataAccess, AuthDataAccess authData
 
     public RegisterResult register(RegisterRequest registerRequest) throws AlreadyTakenException, DataAccessException, SQLException {
         String username = registerRequest.username();
+        // prepare the hashed password to store in the database
+        String hashedPassword = BCrypt.hashpw(registerRequest.password(), BCrypt.gensalt());
 
-        var userData = new UserData(username, registerRequest.password(), registerRequest.email());
+        var userData = new UserData(username, hashedPassword, registerRequest.email());
 
         // ensure the user doesn't already exist in the database
         var responseData = userDataAccess.getUser(userData);
@@ -46,10 +50,18 @@ public record UserService(UserDataAccess userDataAccess, AuthDataAccess authData
         var userData = new UserData(username, loginRequest.password(), null);
 
         // ensure the username/password combo is correct
-        var responseData = userDataAccess.loginUser(userData);
+        var responseData = userDataAccess.getUser(userData);
         if (responseData == null) {
             throw new UnauthorizedException("unauthorized");
         }
+
+        // verify the provided password hashes to the one stored in the database
+        String hashedPassword = responseData.password();
+        var valid = BCrypt.checkpw(loginRequest.password(), hashedPassword);
+        if (!valid) {
+            throw new UnauthorizedException("unauthorized");
+        }
+
         // generate an auth token and update auth data
         else {
             String authToken = UUID.randomUUID().toString();

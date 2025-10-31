@@ -19,22 +19,6 @@ public class MemoryUserDataAccess implements UserDataAccess {
     }
 
     @Override
-    public UserData loginUser(UserData user) {
-        String targetName = user.username();
-        String targetPass = user.password();
-
-        var userData = userDataSaved.get(targetName);
-        if (userData == null) {
-            return null;
-        }
-        if (userData.password().equals(targetPass)) {
-            return userData;
-        } else {
-            return null;
-        }
-    }
-
-    @Override
     public void clear() {
         userDataSaved.clear();
     }
