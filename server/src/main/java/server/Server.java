@@ -175,7 +175,7 @@ public class Server {
         catch (UnauthorizedException e) {
             returnError(ctx, e.getMessage(), 401);
         }
-        catch (DataAccessException e) {
+        catch (DataAccessException | SQLException e) {
             returnError(ctx, e.getMessage(), 500);
         }
     }
@@ -208,6 +208,8 @@ public class Server {
         // handle exception
         catch (UnauthorizedException e) {
             returnError(ctx, e.getMessage(), 401);
+        } catch (DataAccessException | SQLException e) {
+            returnError(ctx, e.getMessage(), 500);
         }
     }
 
@@ -249,7 +251,7 @@ public class Server {
         catch (UnauthorizedException e) {
             returnError(ctx, e.getMessage(), 401);
         }
-        catch (MissingGameException | DataAccessException e) {
+        catch (MissingGameException | DataAccessException | SQLException e) {
             returnError(ctx, e.getMessage(), 500);
         }
         catch (AlreadyTakenException e) {
@@ -277,6 +279,9 @@ public class Server {
         // handle exception
         catch (UnauthorizedException e) {
             returnError(ctx, e.getMessage(), 401);
+        }
+        catch (DataAccessException | SQLException e) {
+            returnError(ctx, e.getMessage(), 500);
         }
     }
 

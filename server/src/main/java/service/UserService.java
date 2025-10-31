@@ -62,7 +62,7 @@ public record UserService(UserDataAccess userDataAccess, AuthDataAccess authData
 
     }
 
-    public void logout(LogoutRequest logoutRequest) throws UnauthorizedException, DataAccessException {
+    public void logout(LogoutRequest logoutRequest) throws UnauthorizedException, DataAccessException, SQLException {
         String authToken = logoutRequest.authToken();
 
         // try to find the authData associated with the authToken

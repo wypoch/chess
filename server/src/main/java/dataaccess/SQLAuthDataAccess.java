@@ -34,22 +34,29 @@ public class SQLAuthDataAccess implements AuthDataAccess {
     }
 
     @Override
-    public void createAuth(AuthData auth) {
-
+    public void createAuth(AuthData auth) throws DataAccessException, SQLException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "INSERT INTO authData (authToken, username) VALUES(?, ?)";
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, auth.authToken());
+                preparedStatement.setString(2, auth.username());
+                preparedStatement.executeUpdate();
+            }
+        }
     }
 
     @Override
-    public AuthData getAuth(String authToken) {
+    public AuthData getAuth(String authToken) throws DataAccessException, SQLException {
         return null;
     }
 
     @Override
-    public void deleteAuth(AuthData auth) throws DataAccessException {
+    public void deleteAuth(AuthData auth) throws DataAccessException, SQLException {
 
     }
 
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException, SQLException {
 
     }
 }

@@ -16,6 +16,8 @@ import service.exception.UnauthorizedException;
 import service.listgames.ListGamesRequest;
 import service.listgames.ListGamesResult;
 
+import java.sql.SQLException;
+
 public class GameService {
 
     private Integer currGameID;
@@ -28,7 +30,7 @@ public class GameService {
         this.gameDataAccess = gameDataAccess;
     }
 
-    public CreateGameResult createGame(CreateGameRequest createGameRequest) throws UnauthorizedException {
+    public CreateGameResult createGame(CreateGameRequest createGameRequest) throws UnauthorizedException, DataAccessException, SQLException {
         String authToken = createGameRequest.authToken();
 
         // try to find the authData associated with the authToken
@@ -50,7 +52,7 @@ public class GameService {
     }
 
     public void joinGame(JoinGameRequest joinGameRequest) throws UnauthorizedException, MissingGameException,
-            AlreadyTakenException, BadRequestException, DataAccessException {
+            AlreadyTakenException, BadRequestException, DataAccessException, SQLException {
 
         String authToken = joinGameRequest.authToken();
 
@@ -96,7 +98,7 @@ public class GameService {
         }
     }
 
-    public ListGamesResult listGames(ListGamesRequest listGamesRequest) throws UnauthorizedException {
+    public ListGamesResult listGames(ListGamesRequest listGamesRequest) throws UnauthorizedException, DataAccessException, SQLException {
         String authToken = listGamesRequest.authToken();
 
         // try to find the authData associated with the authToken
