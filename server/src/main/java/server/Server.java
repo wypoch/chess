@@ -293,13 +293,14 @@ public class Server {
         // clear each database
         try {
             databaseService.clear();
+            var serializer = new Gson();
+            var res = Map.of();
+            ctx.result(serializer.toJson(res));
+
         // handle exceptions
         } catch (DataAccessException | SQLException e) {
             returnError(ctx, e.getMessage(), 500);
         }
-        var serializer = new Gson();
-        var res = Map.of();
-        ctx.result(serializer.toJson(res));
     }
 
     private void returnError(@NotNull Context ctx, String message, Integer status) {
