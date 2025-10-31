@@ -13,11 +13,12 @@ import service.register.RegisterRequest;
 import service.register.RegisterResult;
 import service.logout.LogoutRequest;
 
+import java.sql.SQLException;
 import java.util.UUID;
 
 public record UserService(UserDataAccess userDataAccess, AuthDataAccess authDataAccess) {
 
-    public RegisterResult register(RegisterRequest registerRequest) throws AlreadyTakenException {
+    public RegisterResult register(RegisterRequest registerRequest) throws AlreadyTakenException, DataAccessException, SQLException {
         String username = registerRequest.username();
 
         var userData = new UserData(username, registerRequest.password(), registerRequest.email());

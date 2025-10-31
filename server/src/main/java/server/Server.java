@@ -27,6 +27,7 @@ import service.creategame.CreateGameRequest;
 // import java.util.logging.Level;
 // import java.util.logging.Logger;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -109,9 +110,12 @@ public class Server {
                     "authToken", registerResult.authToken());
             ctx.result(serializer.toJson(res));
         }
-        // handle exception
+        // handle exceptions
         catch (AlreadyTakenException e) {
             returnError(ctx, e.getMessage(), 403);
+        }
+        catch (DataAccessException | SQLException e) {
+            returnError(ctx, e.getMessage(), 500);
         }
     }
 
