@@ -86,13 +86,17 @@ public class SQLGameDataAccess implements GameDataAccess {
     @Override
     public void updateGame(GameData gameData) throws DataAccessException, SQLException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            var statement = "UPDATE gameData SET game=? WHERE id=?";
+            var statement = "UPDATE gameData SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE gameId=?";
             try (var preparedStatement = conn.prepareStatement(statement)) {
                 // serialize the game into a JSON for storage in the database
                 var gameJson = new Gson().toJson(gameData.game());
 
-                preparedStatement.setInt(1, gameData.gameID());
-                preparedStatement.setString(2, gameJson);
+                preparedStatement.setString(1, gameData.whiteUsername());
+                preparedStatement.setString(2, gameData.blackUsername());
+                preparedStatement.setString(3, gameData.gameName());
+                preparedStatement.setString(4, gameJson);
+
+                preparedStatement.setInt(5, gameData.gameID());
                 var numUpdates = preparedStatement.executeUpdate();
                 if (numUpdates == 0) {
                     throw new DataAccessException("cannot update GameData which doesn't exist");
