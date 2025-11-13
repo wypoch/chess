@@ -1,4 +1,4 @@
-package ui;
+package console;
 
 public class InvalidInputException extends Exception {
     public InvalidInputException(String message) {

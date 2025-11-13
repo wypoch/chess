@@ -1,4 +1,4 @@
-package ui;
+package console;
 
 public class TerminationException extends Exception {
     public TerminationException() {
