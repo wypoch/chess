@@ -1,8 +1,10 @@
-import chess.*;
+import ui.UIManager;
 
 public class Main {
+
     public static void main(String[] args) {
-        var piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-        System.out.println("♕ 240 Chess Client: " + piece);
+        System.out.println("Welcome to the chess client! Type help to get started.\n");
+        var uiManager = new UIManager();
+        uiManager.mainLoop();
     }
 }
