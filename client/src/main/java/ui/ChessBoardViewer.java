@@ -18,14 +18,7 @@ public class ChessBoardViewer {
             for (i = 8; i >= 1; i--) {
                 System.out.print(SET_BG_COLOR_LIGHT_GREY + " " + i + " " + RESET_BG_COLOR);
                 for (j = 1; j <= 8; j++) {
-                    if ((i + j) % 2 == 0) {
-                        System.out.print(SET_BG_COLOR_WHITE);
-                    } else {
-                        System.out.print(SET_BG_COLOR_BLACK);
-                    }
-                    ChessPiece chessPiece = chessBoard.getPiece(new ChessPosition(i, j));
-                    System.out.print(pieceToUnicode(chessPiece));
-                    System.out.print(RESET_BG_COLOR);
+                    printPiece(chessBoard, i, j);
                 }
                 System.out.print(SET_BG_COLOR_LIGHT_GREY + " " + i + " " + RESET_BG_COLOR);
                 System.out.println();
@@ -38,14 +31,7 @@ public class ChessBoardViewer {
             for (i = 1; i <= 8; i++) {
                 System.out.print(SET_BG_COLOR_LIGHT_GREY + " " + i + " " + RESET_BG_COLOR);
                 for (j = 8; j >= 1; j--) {
-                    if ((i + j) % 2 == 0) {
-                        System.out.print(SET_BG_COLOR_WHITE);
-                    } else {
-                        System.out.print(SET_BG_COLOR_BLACK);
-                    }
-                    ChessPiece chessPiece = chessBoard.getPiece(new ChessPosition(i, j));
-                    System.out.print(pieceToUnicode(chessPiece));
-                    System.out.print(RESET_BG_COLOR);
+                    printPiece(chessBoard, i, j);
                 }
                 System.out.print(SET_BG_COLOR_LIGHT_GREY + " " + i + " " + RESET_BG_COLOR);
                 System.out.println();
@@ -81,5 +67,16 @@ public class ChessBoardViewer {
                 case ChessPiece.PieceType.PAWN -> SET_TEXT_COLOR_BLUE + " P " + RESET_TEXT_COLOR;
             };
         }
+    }
+
+    public static void printPiece(ChessBoard chessBoard, int i, int j) {
+        if ((i + j) % 2 == 0) {
+            System.out.print(SET_BG_COLOR_WHITE);
+        } else {
+            System.out.print(SET_BG_COLOR_BLACK);
+        }
+        ChessPiece chessPiece = chessBoard.getPiece(new ChessPosition(i, j));
+        System.out.print(pieceToUnicode(chessPiece));
+        System.out.print(RESET_BG_COLOR);
     }
 }
