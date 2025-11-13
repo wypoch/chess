@@ -55,4 +55,34 @@ public class ServerFacadeTests {
         Assertions.assertThrows(Exception.class, () -> facade.register("player2", "password2", null));
     }
 
+    @Test
+    void loginNormal() throws HTTPException {
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+        Assertions.assertEquals("player1", authData1.username());
+        var authToken1 = authData1.authToken();
+
+        // Login with correct password
+        var authData2 = facade.login("player1", "password1");
+        Assertions.assertEquals("player1", authData2.username());
+        var authToken2 = authData2.authToken();
+        Assertions.assertTrue(authToken2.length() > 10);
+
+        // Ensure the new auth token is different
+        Assertions.assertNotEquals(authToken1, authToken2);
+
+        // Login with an incorrect password (throws exception)
+        Assertions.assertThrows(HTTPException.class, () -> facade.login("player1", "password2"));
+    }
+
+    @Test
+    void loginInvalid() throws HTTPException {
+        // Login before registering user
+        Assertions.assertThrows(HTTPException.class, () -> facade.login("player1", "password1"));
+
+        // Ensure that a null input field causes problems
+        Assertions.assertThrows(Exception.class, () -> facade.login(null, "password1"));
+        Assertions.assertThrows(Exception.class, () -> facade.login("player1", null));
+    }
+
 }

@@ -83,6 +83,33 @@ public class ServerFacade {
         }
     }
 
+    public AuthData login(String username, String password) throws HTTPException {
+
+        var body = Map.of("username", username,
+                "password", password);
+
+        var jsonBody = new Gson().toJson(body);
+        HttpResponse<String> response;
+
+        try {
+            response = post("/session", jsonBody);
+        } catch (Exception e) {
+            throw new HTTPException("user registration failed due to server error");
+        }
+
+        var responseMap = new Gson().fromJson(response.body(), Map.class);
+        var statusCode = response.statusCode();
+
+        if (statusCode == 200) {
+            String authToken = (String)responseMap.get("authToken");
+            return new AuthData(authToken, username);
+
+        } else {
+            var errorMsg = responseMap.get("message");
+            throw new HTTPException((String)errorMsg);
+        }
+    }
+
     public void clear() throws HTTPException {
 
         HttpResponse<String> response;

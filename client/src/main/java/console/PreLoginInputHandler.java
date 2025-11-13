@@ -17,6 +17,7 @@ public class PreLoginInputHandler implements InputHandler {
     }
 
     public void parse(String[] inputs) throws InvalidInputException, TerminationException, HTTPException {
+
         String option = inputs[0];
         switch (option) {
             case "help":
@@ -32,19 +33,26 @@ public class PreLoginInputHandler implements InputHandler {
                 if (inputs.length != 4) {
                     throw new InvalidInputException("need to supply exactly username, password, and email");
                 }
-                String username = inputs[1];
-                String password = inputs[2];
-                String email = inputs[3];
 
                 // Register the specified user and save their info
-                var registerResult = serverFacade.register(username, password, email);
+                var registerResult = serverFacade.register(inputs[1], inputs[2], inputs[3]);
                 user = registerResult.username();
                 authToken = registerResult.authToken();
-                System.out.println("Login successful!");
-
+                System.out.println("Registration successful!");
                 break;
 
             case "login":
+
+                // Ensure number of inputs is correct
+                if (inputs.length != 3) {
+                    throw new InvalidInputException("need to supply exactly username, password");
+                }
+
+                // Login the specified user and save their info
+                var loginResult = serverFacade.login(inputs[1], inputs[2]);
+                user = loginResult.username();
+                authToken = loginResult.authToken();
+                System.out.println("Login successful!");
                 break;
 
             default:
