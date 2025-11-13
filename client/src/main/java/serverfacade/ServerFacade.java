@@ -1,11 +1,14 @@
 package serverfacade;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import model.AuthData;
+import model.GameData;
 
+import java.lang.reflect.Type;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
-import java.util.Map;
+import java.util.*;
 
 import static serverfacade.HTTPHelper.*;
 
@@ -113,6 +116,30 @@ public class ServerFacade {
 
         } else {
             var errorMsg = responseMap.get("message");
+            throw new HTTPException((String)errorMsg);
+        }
+    }
+
+    public ArrayList<GameData> listGames(String authToken) throws HTTPException {
+
+        HttpResponse<String> response;
+
+        try {
+            response = get(httpClient, port, "/game", authToken);
+        } catch (Exception e) {
+            throw new HTTPException("clearing database failed due to server error");
+        }
+
+        var statusCode = response.statusCode();
+
+        if (statusCode == 200) {
+            Type mapType = new TypeToken<Map<String, ArrayList<GameData>>>(){}.getType();
+            Map<String, ArrayList<GameData>> responseMap = new Gson().fromJson(response.body(), mapType);
+
+            return responseMap.get("games");
+
+        } else {
+            var errorMsg = new Gson().fromJson(response.body(), Map.class).get("message");
             throw new HTTPException((String)errorMsg);
         }
     }

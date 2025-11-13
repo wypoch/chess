@@ -5,6 +5,8 @@ import model.GameData;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
 
+import java.util.ArrayList;
+
 import static ui.EscapeSequences.RESET_TEXT_COLOR;
 import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
 
@@ -120,6 +122,27 @@ public class InputHandler {
                 break;
 
             case "list":
+                if (inputs.length > 1) {
+                    throw new InvalidInputException("command takes no additional inputs");
+                }
+                ArrayList<GameData> games = serverFacade.listGames(authToken);
+                System.out.println("Listing game information");
+
+                // Print table header
+                System.out.println("|-------|-----------------|-----------------|-----------------|");
+                String row = "| %-5s | %-15s | %-15s | %-15s |\n";
+                System.out.printf(row, "Num", "Game Name", "White Player", "Black Player");
+                System.out.println("|-------|-----------------|-----------------|-----------------|");
+
+                // Print table rows
+                for (int i = 0; i < games.size(); i++) {
+                    GameData game = games.get(i);
+                    System.out.printf(row, i, game.gameName(), game.whiteUsername(), game.blackUsername());
+                }
+
+                // Print table footer
+                System.out.println("|-------|-----------------|-----------------|-----------------|");
+
                 break;
 
             case "join":

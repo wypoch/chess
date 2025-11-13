@@ -1,9 +1,12 @@
 package client;
 
+import model.GameData;
 import org.junit.jupiter.api.*;
 import server.Server;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
+
+import java.util.ArrayList;
 
 public class ServerFacadeTests {
 
@@ -139,4 +142,38 @@ public class ServerFacadeTests {
         Assertions.assertThrows(HTTPException.class, () -> facade.createGame(authData1.authToken(), "testGame"));
     }
 
+    @Test
+    void listGamesNormal() throws HTTPException {
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+
+        // List games (there should be none)
+        ArrayList<GameData> games1 = facade.listGames(authData1.authToken());
+        Assertions.assertEquals(0, games1.size());
+
+        // Create some games
+        facade.createGame(authData1.authToken(), "testGame");
+        facade.createGame(authData1.authToken(), "testGame");
+        facade.createGame(authData1.authToken(), "testGame");
+
+        // List games
+        ArrayList<GameData> games2 = facade.listGames(authData1.authToken());
+        for (GameData game : games2) {
+            Assertions.assertEquals("testGame", game.gameName());
+        }
+    }
+
+    @Test
+    void listGamesInvalid() throws HTTPException {
+        // Try to list games with an invalid authToken
+        Assertions.assertThrows(HTTPException.class, () -> facade.listGames("fakeauthtoken"));
+
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+
+        facade.logout(authData1.authToken());
+
+        // Try to list games with an expired authToken
+        Assertions.assertThrows(HTTPException.class, () -> facade.listGames(authData1.authToken()));
+    }
 }
