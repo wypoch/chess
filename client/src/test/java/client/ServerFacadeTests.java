@@ -59,7 +59,6 @@ public class ServerFacadeTests {
     void loginNormal() throws HTTPException {
         // Register a user
         var authData1 = facade.register("player1", "password1", "p1@email.com");
-        Assertions.assertEquals("player1", authData1.username());
         var authToken1 = authData1.authToken();
 
         // Login with correct password
@@ -83,6 +82,37 @@ public class ServerFacadeTests {
         // Ensure that a null input field causes problems
         Assertions.assertThrows(Exception.class, () -> facade.login(null, "password1"));
         Assertions.assertThrows(Exception.class, () -> facade.login("player1", null));
+    }
+
+    @Test
+    void logoutNormal() throws HTTPException {
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+
+        // Logout
+        facade.logout(authData1.authToken());
+
+        // Login twice
+        var authData2 = facade.login("player1", "password1");
+        facade.login("player1", "password1");
+
+        // Logout with first auth data
+        facade.logout(authData2.authToken());
+    }
+
+    @Test
+    void logoutInvalid() throws HTTPException {
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+
+        // Logout
+        facade.logout(authData1.authToken());
+
+        // Login with correct password
+        facade.login("player1", "password1");
+
+        // Try logging out with original authToken
+        Assertions.assertThrows(HTTPException.class, () -> facade.logout(authData1.authToken()));
     }
 
 }

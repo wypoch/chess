@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class ConsoleManager {
 
     private String currUser = null;
-    private ServerFacade serverFacade;
+    private final ServerFacade serverFacade;
 
     public ConsoleManager(ServerFacade serverFacade) {
         this.serverFacade = serverFacade;
@@ -24,27 +24,23 @@ public class ConsoleManager {
 
     public void mainLoop() {
         Scanner scanner = new Scanner(System.in);
-        var preLoginInputHandler = new PreLoginInputHandler(serverFacade);
-        var postLoginInputHandler = new PostLoginInputHandler(serverFacade);
+        var inputHandler = new InputHandler(serverFacade);
 
         while (true) {
             // Get the tag for the console
             var tag = generateTag();
             System.out.print(tag);
 
-            // Determine which state we are in and update the inputHandler
-            InputHandler inputHandler;
-            if (currUser == null) {
-                inputHandler = preLoginInputHandler;
-            } else {
-                inputHandler = postLoginInputHandler;
-                postLoginInputHandler.setUser(currUser);
-            }
-
             // Get user input and parse it
             String[] inputs = scanner.nextLine().split(" ");
+
             try {
-                inputHandler.parse(inputs);
+                // Determine which state we are in and update the inputHandler
+                if (currUser == null) {
+                    inputHandler.preLoginParse(inputs);
+                } else {
+                    inputHandler.postLoginParse(inputs);
+                }
             }
             // User supplied an invalid input
             catch (InvalidInputException e) {
