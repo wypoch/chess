@@ -1,9 +1,11 @@
 package console;
 
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
+import ui.ChessBoardViewer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -159,7 +161,14 @@ public class InputHandler {
                 }
                 gameNum = inputs[1];
                 String playerColor = inputs[2];
-                if (!playerColor.equals("white") && !playerColor.equals("black")) {
+                ChessGame.TeamColor teamColor;
+
+                if (playerColor.equals("white")) {
+                    teamColor = ChessGame.TeamColor.WHITE;
+                } else if (playerColor.equals("black")) {
+                    teamColor = ChessGame.TeamColor.BLACK;
+                }
+                else {
                     throw new InvalidInputException("invalid color provided");
                 }
 
@@ -177,6 +186,8 @@ public class InputHandler {
                 System.out.printf("Joined game %s (ID %d) as %s color\n",
                         gameNumToName.get(gameNumAsInt), gameNumAsInt, playerColor);
 
+                var chessGameJoin = new ChessGame();
+                ChessBoardViewer.showBoard(chessGameJoin.getBoard(), teamColor);
                 break;
 
             case "observe":
@@ -196,6 +207,8 @@ public class InputHandler {
                 }
                 System.out.printf("Observing game %s (ID %d)\n", gameNumToName.get(gameNumAsInt), gameNumAsInt);
 
+                var chessGameObserve = new ChessGame();
+                ChessBoardViewer.showBoard(chessGameObserve.getBoard(), ChessGame.TeamColor.WHITE);
                 break;
 
             default:
