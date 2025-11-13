@@ -99,7 +99,8 @@ public class InputHandler {
     }
 
     public void parseHelpPreLogin(String[] inputs) throws InvalidInputException {
-        String preLoginMenu = SET_TEXT_COLOR_BLUE + "register <username> <password> <email>" + RESET_TEXT_COLOR + " : register a user to play chess\n" +
+        String preLoginMenu =
+                SET_TEXT_COLOR_BLUE + "register <username> <password> <email>" + RESET_TEXT_COLOR + " : register a user to play chess\n" +
                 SET_TEXT_COLOR_BLUE + "login <username> <password>" + RESET_TEXT_COLOR + " : login a user\n" +
                 SET_TEXT_COLOR_BLUE + "quit" + RESET_TEXT_COLOR + " : exit the client\n" +
                 SET_TEXT_COLOR_BLUE + "help" + RESET_TEXT_COLOR + " : display this help menu";
