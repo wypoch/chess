@@ -176,4 +176,52 @@ public class ServerFacadeTests {
         // Try to list games with an expired authToken
         Assertions.assertThrows(HTTPException.class, () -> facade.listGames(authData1.authToken()));
     }
+
+    @Test
+    void joinGameNormal() throws HTTPException {
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+
+        // Create some games
+        int gameID1 = facade.createGame(authData1.authToken(), "testGame");
+        facade.createGame(authData1.authToken(), "testGame");
+        facade.createGame(authData1.authToken(), "testGame");
+
+        // Join the first game as white
+        facade.joinGame(authData1.authToken(), "white", gameID1);
+
+        // List games; ensure one of them lists player1 as the white player
+        ArrayList<GameData> games = facade.listGames(authData1.authToken());
+        int numMatches = 0;
+        for (GameData game : games) {
+            String whiteUsername = game.whiteUsername();
+            if (whiteUsername != null) {
+                if (game.whiteUsername().equals("player1")) {
+                    numMatches += 1;
+                }
+            }
+        }
+        Assertions.assertEquals(1, numMatches);
+    }
+
+    @Test
+    void joinGameInvalid() throws HTTPException {
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+
+        // Create some games
+        int gameID1 = facade.createGame(authData1.authToken(), "testGame");
+        facade.createGame(authData1.authToken(), "testGame");
+        facade.createGame(authData1.authToken(), "testGame");
+
+        // Join the first game as white twice
+        facade.joinGame(authData1.authToken(), "white", gameID1);
+        Assertions.assertThrows(HTTPException.class, () -> facade.joinGame(authData1.authToken(), "white", gameID1));
+
+        // Join the game with a bad auth token
+        Assertions.assertThrows(HTTPException.class, () -> facade.joinGame("fakeauthtoken", "black", gameID1));
+
+        // Join a game with an invalid player color
+        Assertions.assertThrows(HTTPException.class, () -> facade.joinGame(authData1.authToken(), "yellow", gameID1));
+    }
 }

@@ -6,6 +6,7 @@ import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static ui.EscapeSequences.RESET_TEXT_COLOR;
 import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
@@ -15,6 +16,8 @@ public class InputHandler {
     String user = null;
     String authToken = null;
     ServerFacade serverFacade;
+    HashMap<Integer, Integer> gameNumToID = new HashMap<>();
+    HashMap<Integer, String> gameNumToName = new HashMap<>();
 
     public InputHandler(ServerFacade serverFacade) {
         this.serverFacade = serverFacade;
@@ -85,6 +88,9 @@ public class InputHandler {
     public void postLoginParse(String[] inputs) throws InvalidInputException, HTTPException, TerminationException {
 
         String option = inputs[0];
+        Integer gameNumAsInt;
+        String gameNum;
+        Integer gameID;
 
         switch (option) {
             case "help":
@@ -117,8 +123,8 @@ public class InputHandler {
                     throw new InvalidInputException("need to supply exactly game name");
                 }
                 String gameName = inputs[1];
-                int gameID = serverFacade.createGame(authToken, gameName);
-                System.out.printf("Created game %s with ID %d\n", gameName, gameID);
+                serverFacade.createGame(authToken, gameName);
+                System.out.printf("Created game %s\n", gameName);
                 break;
 
             case "list":
@@ -137,7 +143,9 @@ public class InputHandler {
                 // Print table rows
                 for (int i = 0; i < games.size(); i++) {
                     GameData game = games.get(i);
-                    System.out.printf(row, i, game.gameName(), game.whiteUsername(), game.blackUsername());
+                    gameNumToID.put(i+1, game.gameID());
+                    gameNumToName.put(i+1, game.gameName());
+                    System.out.printf(row, i+1, game.gameName(), game.whiteUsername(), game.blackUsername());
                 }
 
                 // Print table footer
@@ -146,9 +154,48 @@ public class InputHandler {
                 break;
 
             case "join":
+                if (inputs.length != 3) {
+                    throw new InvalidInputException("need to supply exactly game ID and color");
+                }
+                gameNum = inputs[1];
+                String playerColor = inputs[2];
+                if (!playerColor.equals("white") && !playerColor.equals("black")) {
+                    throw new InvalidInputException("invalid color provided");
+                }
+
+                try {
+                    gameNumAsInt = Integer.parseInt(gameNum);
+                } catch (NumberFormatException e) {
+                    throw new InvalidInputException("provided value is not an integer");
+                }
+
+                gameID = gameNumToID.get(gameNumAsInt);
+                if (gameID == null) {
+                    throw new InvalidInputException("provided value does not correspond to any known games...try the list command again?");
+                }
+                serverFacade.joinGame(authToken, playerColor, gameID);
+                System.out.printf("Joined game %s (ID %d) as %s color\n",
+                        gameNumToName.get(gameNumAsInt), gameNumAsInt, playerColor);
+
                 break;
 
             case "observe":
+                if (inputs.length != 2) {
+                    throw new InvalidInputException("need to supply exactly game ID");
+                }
+                gameNum = inputs[1];
+                try {
+                    gameNumAsInt = Integer.parseInt(gameNum);
+                } catch (NumberFormatException e) {
+                    throw new InvalidInputException("provided value is not an integer");
+                }
+
+                gameID = gameNumToID.get(gameNumAsInt);
+                if (gameID == null) {
+                    throw new InvalidInputException("provided value does not correspond to any known games...try the list command again?");
+                }
+                System.out.printf("Observing game %s (ID %d)\n", gameNumToName.get(gameNumAsInt), gameNumAsInt);
+
                 break;
 
             default:

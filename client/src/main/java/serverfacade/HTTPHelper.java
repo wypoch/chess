@@ -52,6 +52,28 @@ public class HTTPHelper {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    public static HttpResponse<String> put(HttpClient httpClient, int port, String path, String jsonBody, String authorization) throws Exception {
+        String urlString = String.format(Locale.getDefault(), "http://localhost:%d%s", port, path);
+        HttpRequest request;
+
+        if (authorization != null) {
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(urlString))
+                    .timeout(java.time.Duration.ofMillis(5000))
+                    .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .header("authorization", authorization)
+                    .build();
+        } else {
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(urlString))
+                    .timeout(java.time.Duration.ofMillis(5000))
+                    .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+        }
+
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
     public static HttpResponse<String> delete(HttpClient httpClient, int port, String path, String authorization) throws Exception {
         String urlString = String.format(Locale.getDefault(), "http://localhost:%d%s", port, path);
         HttpRequest request;

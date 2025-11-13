@@ -144,6 +144,27 @@ public class ServerFacade {
         }
     }
 
+    public void joinGame(String authToken, String playerColor, Integer gameID) {
+        var body = Map.of("playerColor", playerColor.toUpperCase(), "gameID", gameID);
+
+        var jsonBody = new Gson().toJson(body);
+        HttpResponse<String> response;
+
+        try {
+            response = put(httpClient, port, "/game", jsonBody, authToken);
+        } catch (Exception e) {
+            throw new HTTPException("joining game failed due to server error");
+        }
+
+        var responseMap = new Gson().fromJson(response.body(), Map.class);
+        var statusCode = response.statusCode();
+
+        if (statusCode != 200) {
+            var errorMsg = responseMap.get("message");
+            throw new HTTPException((String)errorMsg);
+        }
+    }
+
     public void clear() throws HTTPException {
 
         HttpResponse<String> response;
