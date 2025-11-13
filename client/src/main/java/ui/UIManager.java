@@ -19,10 +19,11 @@ public class UIManager {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
+            // Get the tag for the console
             var tag = generateTag();
             System.out.print(tag);
-            String[] inputs = scanner.nextLine().split(" ");
 
+            // Determine which state we are in
             UIHandler uiHandler;
             if (!loggedIn) {
                 uiHandler = new PreLoginHandler();
@@ -30,6 +31,8 @@ public class UIManager {
                 uiHandler = new PostLoginHandler();
             }
 
+            // Get user input and parse it
+            String[] inputs = scanner.nextLine().split(" ");
             try {
                 uiHandler.parse(inputs);
             } catch (InvalidInputException e) {
