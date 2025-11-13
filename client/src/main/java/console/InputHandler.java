@@ -1,5 +1,7 @@
 package console;
 
+import model.AuthData;
+import model.GameData;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
 
@@ -23,6 +25,8 @@ public class InputHandler {
     public void preLoginParse(String[] inputs) throws InvalidInputException, TerminationException, HTTPException {
 
         String option = inputs[0];
+        AuthData authData;
+
         switch (option) {
             case "help":
                 if (inputs.length > 1) {
@@ -45,9 +49,9 @@ public class InputHandler {
                 }
 
                 // Register the specified user and save their info
-                var registerResult = serverFacade.register(inputs[1], inputs[2], inputs[3]);
-                user = registerResult.username();
-                authToken = registerResult.authToken();
+                authData = serverFacade.register(inputs[1], inputs[2], inputs[3]);
+                user = authData.username();
+                authToken = authData.authToken();
                 System.out.println("Registration successful!");
                 break;
 
@@ -58,9 +62,9 @@ public class InputHandler {
                 }
 
                 // Login the specified user and save their info
-                var loginResult = serverFacade.login(inputs[1], inputs[2]);
-                user = loginResult.username();
-                authToken = loginResult.authToken();
+                authData = serverFacade.login(inputs[1], inputs[2]);
+                user = authData.username();
+                authToken = authData.authToken();
                 System.out.println("Login successful!");
                 break;
 
@@ -79,6 +83,7 @@ public class InputHandler {
     public void postLoginParse(String[] inputs) throws InvalidInputException, HTTPException, TerminationException {
 
         String option = inputs[0];
+
         switch (option) {
             case "help":
                 if (inputs.length > 1) {
@@ -106,6 +111,12 @@ public class InputHandler {
                 break;
 
             case "create":
+                if (inputs.length != 2) {
+                    throw new InvalidInputException("need to supply exactly game name");
+                }
+                String gameName = inputs[1];
+                int gameID = serverFacade.createGame(authToken, gameName);
+                System.out.printf("Created game %s with ID %d\n", gameName, gameID);
                 break;
 
             case "list":

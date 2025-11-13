@@ -115,4 +115,28 @@ public class ServerFacadeTests {
         Assertions.assertThrows(HTTPException.class, () -> facade.logout(authData1.authToken()));
     }
 
+    @Test
+    void createGameNormal() throws HTTPException {
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+
+        // Create some games
+        facade.createGame(authData1.authToken(), "testGame");
+        facade.createGame(authData1.authToken(), "testGame");
+    }
+
+    @Test
+    void createGameInvalid() throws HTTPException {
+        // Try to create a game with an invalid authToken
+        Assertions.assertThrows(HTTPException.class, () -> facade.createGame("fakeauthtoken", "testGame"));
+
+        // Register a user
+        var authData1 = facade.register("player1", "password1", "p1@email.com");
+
+        facade.logout(authData1.authToken());
+
+        // Try to create a game with an expired authToken
+        Assertions.assertThrows(HTTPException.class, () -> facade.createGame(authData1.authToken(), "testGame"));
+    }
+
 }

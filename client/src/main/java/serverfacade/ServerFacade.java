@@ -92,6 +92,31 @@ public class ServerFacade {
         }
     }
 
+    public int createGame(String authToken, String gameName) throws HTTPException {
+
+        var body = Map.of("gameName", gameName);
+
+        var jsonBody = new Gson().toJson(body);
+        HttpResponse<String> response;
+
+        try {
+            response = post(httpClient, port, "/game", jsonBody, authToken);
+        } catch (Exception e) {
+            throw new HTTPException("game creation failed due to server error");
+        }
+
+        var responseMap = new Gson().fromJson(response.body(), Map.class);
+        var statusCode = response.statusCode();
+
+        if (statusCode == 200) {
+            return ((Double) responseMap.get("gameID")).intValue();
+
+        } else {
+            var errorMsg = responseMap.get("message");
+            throw new HTTPException((String)errorMsg);
+        }
+    }
+
     public void clear() throws HTTPException {
 
         HttpResponse<String> response;
