@@ -71,9 +71,9 @@ public class ChessBoardViewer {
 
     public static void printPiece(ChessBoard chessBoard, int i, int j) {
         if ((i + j) % 2 == 0) {
-            System.out.print(SET_BG_COLOR_WHITE);
-        } else {
             System.out.print(SET_BG_COLOR_BLACK);
+        } else {
+            System.out.print(SET_BG_COLOR_WHITE);
         }
         ChessPiece chessPiece = chessBoard.getPiece(new ChessPosition(i, j));
         System.out.print(pieceToUnicode(chessPiece));
