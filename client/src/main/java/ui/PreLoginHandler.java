@@ -4,13 +4,13 @@ import static ui.EscapeSequences.RESET_TEXT_COLOR;
 import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
 
 public class PreLoginHandler implements UIHandler {
-    public void parse(String[] inputs) throws InvalidInputException {
+    public void parse(String[] inputs) throws InvalidInputException, TerminationException {
         switch (inputs[0]) {
             case "help":
                 System.out.println(getMenu());
                 break;
             case "quit":
-                break;
+                throw new TerminationException();
             case "register":
                 break;
             case "login":

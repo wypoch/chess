@@ -35,8 +35,15 @@ public class UIManager {
             String[] inputs = scanner.nextLine().split(" ");
             try {
                 uiHandler.parse(inputs);
-            } catch (InvalidInputException e) {
+            }
+            // User supplied an invalid input
+            catch (InvalidInputException e) {
                 System.out.printf("Error occurred: %s\n", e.getMessage());
+            }
+            // User requested application to quit
+            catch (TerminationException e) {
+                System.out.println("Quitting...");
+                break;
             }
         }
 
