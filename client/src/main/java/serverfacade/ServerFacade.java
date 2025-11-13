@@ -15,7 +15,7 @@ import static serverfacade.HTTPHelper.*;
 public class ServerFacade {
 
     private final int port;
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     public ServerFacade(int port) {
         this.port = port;
@@ -31,7 +31,7 @@ public class ServerFacade {
         HttpResponse<String> response;
 
         try {
-            response = post(httpClient, port, "/user", jsonBody, null);
+            response = post(HTTP_CLIENT, port, "/user", jsonBody, null);
         } catch (Exception e) {
             throw new HTTPException("user registration failed due to server error");
         }
@@ -58,7 +58,7 @@ public class ServerFacade {
         HttpResponse<String> response;
 
         try {
-            response = post(httpClient, port, "/session", jsonBody, null);
+            response = post(HTTP_CLIENT, port, "/session", jsonBody, null);
         } catch (Exception e) {
             throw new HTTPException("user registration failed due to server error");
         }
@@ -81,7 +81,7 @@ public class ServerFacade {
         HttpResponse<String> response;
 
         try {
-            response = delete(httpClient, port, "/session", authToken);
+            response = delete(HTTP_CLIENT, port, "/session", authToken);
         } catch (Exception e) {
             throw new HTTPException("user logout failed due to server error");
         }
@@ -103,7 +103,7 @@ public class ServerFacade {
         HttpResponse<String> response;
 
         try {
-            response = post(httpClient, port, "/game", jsonBody, authToken);
+            response = post(HTTP_CLIENT, port, "/game", jsonBody, authToken);
         } catch (Exception e) {
             throw new HTTPException("game creation failed due to server error");
         }
@@ -125,7 +125,7 @@ public class ServerFacade {
         HttpResponse<String> response;
 
         try {
-            response = get(httpClient, port, "/game", authToken);
+            response = get(HTTP_CLIENT, port, "/game", authToken);
         } catch (Exception e) {
             throw new HTTPException("clearing database failed due to server error");
         }
@@ -151,7 +151,7 @@ public class ServerFacade {
         HttpResponse<String> response;
 
         try {
-            response = put(httpClient, port, "/game", jsonBody, authToken);
+            response = put(HTTP_CLIENT, port, "/game", jsonBody, authToken);
         } catch (Exception e) {
             throw new HTTPException("joining game failed due to server error");
         }
@@ -170,7 +170,7 @@ public class ServerFacade {
         HttpResponse<String> response;
 
         try {
-            response = delete(httpClient, port, "/db", null);
+            response = delete(HTTP_CLIENT, port, "/db", null);
         } catch (Exception e) {
             throw new HTTPException("clearing database failed due to server error");
         }
