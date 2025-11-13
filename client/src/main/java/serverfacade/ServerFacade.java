@@ -1,6 +1,7 @@
 package serverfacade;
 
 import com.google.gson.Gson;
+import model.AuthData;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -42,7 +43,19 @@ public class ServerFacade {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    public RegisterResult register(String username, String password, String email) throws HTTPException {
+    private HttpResponse<String> delete(String path) throws Exception {
+        String urlString = String.format(Locale.getDefault(), "http://localhost:%d%s", port, path);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(urlString))
+                .timeout(java.time.Duration.ofMillis(5000))
+                .DELETE()
+                .build();
+
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    public AuthData register(String username, String password, String email) throws HTTPException {
 
         var body = Map.of("username", username,
                 "password", password,
@@ -62,9 +75,28 @@ public class ServerFacade {
 
         if (statusCode == 200) {
             String authToken = (String)responseMap.get("authToken");
-            return new RegisterResult(username, authToken);
+            return new AuthData(authToken, username);
 
         } else {
+            var errorMsg = responseMap.get("message");
+            throw new HTTPException((String)errorMsg);
+        }
+    }
+
+    public void clear() throws HTTPException {
+
+        HttpResponse<String> response;
+
+        try {
+            response = delete("/db");
+        } catch (Exception e) {
+            throw new HTTPException("clearing database failed due to server error");
+        }
+
+        var responseMap = new Gson().fromJson(response.body(), Map.class);
+        var statusCode = response.statusCode();
+
+        if (statusCode != 200) {
             var errorMsg = responseMap.get("message");
             throw new HTTPException((String)errorMsg);
         }
