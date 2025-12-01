@@ -53,6 +53,16 @@ public class Server {
         server.get("game", this::listGames);
         server.delete("db", this::clear);
 
+        // Enable websocket connections
+        server.ws("ws", ws -> {
+            ws.onConnect(ctx -> {
+                ctx.enableAutomaticPings();
+                System.out.println("Websocket connected");
+            });
+            ws.onMessage(ctx -> ctx.send("WebSocket response:" + ctx.message()));
+            ws.onClose(_ -> System.out.println("Websocket closed"));
+        });
+
         // Create the SQL database, if it does not already exist
         try {
             DatabaseManager.createDatabase();
