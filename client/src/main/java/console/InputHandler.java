@@ -17,6 +17,8 @@ public class InputHandler {
 
     String user = null;
     String authToken = null;
+    Integer gameID = null;
+
     ServerFacade serverFacade;
     HashMap<Integer, Integer> gameNumToID = new HashMap<>();
     HashMap<Integer, String> gameNumToName = new HashMap<>();
@@ -27,6 +29,10 @@ public class InputHandler {
 
     public String getUser() {
         return user;
+    }
+
+    public Integer getGameID() {
+        return gameID;
     }
 
     public void preLoginParse(String[] inputs) throws InvalidInputException, TerminationException, HTTPException {
@@ -91,6 +97,35 @@ public class InputHandler {
         }
     }
 
+    public void gameplayParse(String[] inputs) throws InvalidInputException {
+
+        String option = inputs[0];
+
+        switch (option) {
+            case "help":
+                parseHelpGameplay(inputs);
+                break;
+
+            case "redraw":
+                break;
+
+            case "leave":
+                break;
+
+            case "move":
+                break;
+
+            case "resign":
+                break;
+
+            case "highlight":
+                break;
+
+            default:
+                throw new InvalidInputException("your input is not recognized");
+        }
+    }
+
     public void parseQuit(String []inputs) throws InvalidInputException, TerminationException {
         if (inputs.length > 1) {
             throw new InvalidInputException("command takes no additional inputs");
@@ -119,6 +154,21 @@ public class InputHandler {
                 SET_TEXT_COLOR_BLUE + "observe <id>" + RESET_TEXT_COLOR + " : observe a game\n" +
                 SET_TEXT_COLOR_BLUE + "logout" + RESET_TEXT_COLOR + " : logout the current player\n" +
                 SET_TEXT_COLOR_BLUE + "quit" + RESET_TEXT_COLOR + " : exit the client\n" +
+                SET_TEXT_COLOR_BLUE + "help" + RESET_TEXT_COLOR + " : display this help menu";
+
+        if (inputs.length > 1) {
+            throw new InvalidInputException("command takes no additional inputs");
+        }
+        // Display help menu
+        System.out.println(postLoginMenu);
+    }
+
+    public void parseHelpGameplay(String[] inputs) throws InvalidInputException {
+        String postLoginMenu = SET_TEXT_COLOR_BLUE + "redraw" + RESET_TEXT_COLOR + " : redraw the board\n" +
+                SET_TEXT_COLOR_BLUE + "highlight <pos>" + RESET_TEXT_COLOR + " : highlight legal moves for piece at position\n" +
+                SET_TEXT_COLOR_BLUE + "move <start> <end>" + RESET_TEXT_COLOR + " : moves piece from start position to end position\n" +
+                SET_TEXT_COLOR_BLUE + "resign" + RESET_TEXT_COLOR + " : forfeit the game\n" +
+                SET_TEXT_COLOR_BLUE + "leave" + RESET_TEXT_COLOR + " : exit the game\n" +
                 SET_TEXT_COLOR_BLUE + "help" + RESET_TEXT_COLOR + " : display this help menu";
 
         if (inputs.length > 1) {
@@ -230,7 +280,11 @@ public class InputHandler {
         if (gameID == null) {
             throw new InvalidInputException("provided value does not correspond to any known games...try the list command again?");
         }
+
+        // Join the game and remember the game ID
         serverFacade.joinGame(authToken, playerColor, gameID);
+        this.gameID = gameID;
+
         System.out.printf("Joined game %s (ID %d) as %s color\n",
                 gameNumToName.get(gameNumAsInt), gameNumAsInt, playerColor);
 
@@ -258,6 +312,9 @@ public class InputHandler {
         if (gameID == null) {
             throw new InvalidInputException("provided value does not correspond to any known games...try the list command again?");
         }
+
+        this.gameID = gameID;
+
         System.out.printf("Observing game %s (ID %d)\n", gameNumToName.get(gameNumAsInt), gameNumAsInt);
 
         var chessGameObserve = new ChessGame();

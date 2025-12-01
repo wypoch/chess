@@ -8,6 +8,8 @@ import java.util.Scanner;
 public class ConsoleManager {
 
     private String currUser = null;
+    private Integer gameID = null;
+
     private final ServerFacade serverFacade;
 
     public ConsoleManager(ServerFacade serverFacade) {
@@ -38,8 +40,10 @@ public class ConsoleManager {
                 // Determine which state we are in and update the inputHandler
                 if (currUser == null) {
                     inputHandler.preLoginParse(inputs);
-                } else {
+                } else if (gameID == null) {
                     inputHandler.postLoginParse(inputs);
+                } else {
+                    inputHandler.gameplayParse(inputs);
                 }
             }
             // User supplied an invalid input
@@ -58,6 +62,7 @@ public class ConsoleManager {
 
             // Update the current user
             currUser = inputHandler.getUser();
+            gameID = inputHandler.getGameID();
         }
 
     }
