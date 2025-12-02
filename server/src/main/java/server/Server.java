@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.*;
 import model.GameData;
 
+import server.websocket.WebSocketHandler;
 import service.exception.AlreadyTakenException;
 import service.exception.BadRequestException;
 import service.exception.MissingGameException;
@@ -32,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import server.websocket.WebSocketHandler;
+
 public class Server {
 
     private final Javalin server;
@@ -44,6 +47,8 @@ public class Server {
     public Server() {
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
+        var webSocketHandler = new WebSocketHandler();
+
         // Register your endpoints and exception handlers here.
         server.post("user", this::register);
         server.post("session", this::login);
@@ -55,12 +60,9 @@ public class Server {
 
         // Enable websocket connections
         server.ws("ws", ws -> {
-            ws.onConnect(ctx -> {
-                ctx.enableAutomaticPings();
-                System.out.println("Websocket connected");
-            });
-            ws.onMessage(ctx -> ctx.send("WebSocket response:" + ctx.message()));
-            ws.onClose(_ -> System.out.println("Websocket closed"));
+            ws.onConnect(webSocketHandler);
+            ws.onMessage(webSocketHandler);
+            ws.onClose(webSocketHandler);
         });
 
         // Create the SQL database, if it does not already exist
