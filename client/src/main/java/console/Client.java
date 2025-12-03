@@ -7,6 +7,7 @@ import serverfacade.ServerFacade;
 import ui.ChessBoardViewer;
 import websocket.ServerMessageObserver;
 import websocket.WebSocketFacade;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
@@ -36,21 +37,24 @@ public class Client implements ServerMessageObserver {
         ServerMessage msg = new Gson().fromJson(message, ServerMessage.class);
         switch (msg.getServerMessageType()) {
             case NOTIFICATION -> displayNotification(new Gson().fromJson(message, NotificationMessage.class).getMessage());
-            //case ERROR -> displayError(((ErrorMessage) message).getErrorMessage());
-            case LOAD_GAME -> loadGame(new Gson().fromJson(message, LoadGameMessage.class).getGame());
+            case ERROR -> displayError(new Gson().fromJson(message, ErrorMessage.class).getMessage());
+            case LOAD_GAME -> loadGame(new Gson().fromJson(message, LoadGameMessage.class));
         }
     }
 
     void displayNotification(String message) {
-
+        System.out.println(message);
+        System.out.print(generateTag());
     }
 
     void displayError(String error) {
-
+        System.out.println(error);
+        System.out.print(generateTag());
     }
 
-    void loadGame(ChessGame game) {
-        ChessBoardViewer.showBoard(game.getBoard(), ChessGame.TeamColor.WHITE);
+    void loadGame(LoadGameMessage message) {
+        ChessBoardViewer.showBoard(message.getGame().getBoard(), message.getColor());
+        System.out.print(generateTag());
     }
 
     private String generateTag() {

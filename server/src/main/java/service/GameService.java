@@ -111,4 +111,12 @@ public class GameService {
             return new ListGamesResult(gameDataList);
         }
     }
+
+    public GameData getGame(int gameID) throws MissingGameException, DataAccessException, SQLException {
+        var gameData = gameDataAccess.getGame(gameID);
+        if (gameData == null) {
+            throw new MissingGameException("game does not exist");
+        }
+        return gameData;
+    }
 }

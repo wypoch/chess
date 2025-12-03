@@ -8,23 +8,27 @@ import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
+import model.AuthData;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 
 import org.jetbrains.annotations.NotNull;
-import websocket.commands.ConnectCommand;
-import websocket.commands.LeaveCommand;
+import service.DatabaseService;
+import service.GameService;
+import service.UserService;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
-import chess.ChessGame.TeamColor;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 
-public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
+public record WebSocketHandler(UserService userService, GameService gameService, DatabaseService databaseService)
+        implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
-    private final ConnectionManager connections = new ConnectionManager();
+    private static final ConnectionManager connections = new ConnectionManager();
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -45,14 +49,23 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             gameID = command.getGameID();
             authToken = command.getAuthToken();
 
+            AuthData authData = userService.getAuth(authToken);
+            GameData gameData = gameService.getGame(gameID);
+
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, message);
+                case CONNECT -> connectPlayer(session, authData, gameData);
+                //case OBSERVE -> connectObserver(session, authData, gameData);
                 //case MAKE_MOVE -> makeMove(ctx.session, message);
                 //case LEAVE -> leave(ctx.session, message);
                 //case RESIGN -> resign(gameID, authToken, ctx.session);
             }
-        } catch (IOException ex) {
-            throw new RuntimeException("IOException occurred");
+        } catch (Exception ex) {
+            try {
+                ErrorMessage msg = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, String.format("Error: %s", ex.getMessage()));
+                session.getRemote().sendString(new Gson().toJson(msg));
+            } catch (IOException ex2) {
+                throw new RuntimeException("Communication failure");
+            }
         }
     }
 
@@ -62,29 +75,37 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     // Connection request received from server
-    private void connect(Session session, String jsonInput) throws IOException {
+    private void connectPlayer(Session session, AuthData authData, GameData gameData) throws IOException {
 
         connections.add(session);
         NotificationMessage notification;
-        ConnectCommand command = new Gson().fromJson(jsonInput, ConnectCommand.class);
+
+        // Gather information for the notification from the database
+        String gameName = gameData.gameName();
+        String whiteUsername = gameData.whiteUsername();
+        String blackUsername = gameData.blackUsername();
+        String playerName = authData.username();
+        ChessGame.TeamColor playerColor;
+        String playerColorString;
+
+        if (whiteUsername != null && whiteUsername.equals(playerName)) {
+            playerColor = ChessGame.TeamColor.WHITE;
+            playerColorString = "white";
+        }
+        else if (blackUsername != null && blackUsername.equals(playerName)) {
+            playerColor = ChessGame.TeamColor.BLACK;
+            playerColorString = "black";
+        } else {
+            throw new RuntimeException("Player not found in game");
+        }
 
         // Send a LOAD_GAME message back to the client
-        ChessGame game = new ChessGame();
-        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+        ChessGame game = gameData.game();
+        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game, playerColor);
         session.getRemote().sendString(new Gson().toJson(message));
 
         // Broadcast the appropriate notification
-        var participantType = command.getParticipantType();
-        var playerColor = command.getPlayerColor();
-        var gameName = command.getGameName();
-        var playerName = command.getPlayerName();
-
-        String msg;
-        if (participantType == ConnectCommand.ParticipantType.PLAYER) {
-            msg = String.format("New player %s joined game %s as color %s", playerName, gameName, playerColor);
-        } else {
-            msg = String.format("New observer %s viewing game %s", playerName, gameName);
-        }
+        String msg = String.format("New player %s joined game %s as color %s", playerName, gameName, playerColorString);
         notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
 
         connections.broadcast(session, notification);

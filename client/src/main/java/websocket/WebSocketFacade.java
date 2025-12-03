@@ -2,9 +2,7 @@ package websocket;
 
 import com.google.gson.Gson;
 import serverfacade.HTTPException;
-import websocket.commands.ConnectCommand;
 import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
 
 import jakarta.websocket.*;
 
@@ -46,13 +44,9 @@ public class WebSocketFacade extends Endpoint {
     }
 
     // Connect request made to server
-    public void connect(String authToken, Integer gameID,
-                        ConnectCommand.ParticipantType participantType, String gameName, String playerName,
-                        String playerColor) throws HTTPException {
+    public void connectPlayer(String authToken, Integer gameID) throws HTTPException {
         try {
-            var command = new ConnectCommand(UserGameCommand.CommandType.CONNECT,
-                    authToken, gameID, participantType, gameName, playerName, playerColor);
-
+            var command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (IOException ex) {
             throw new HTTPException(ex.getMessage());

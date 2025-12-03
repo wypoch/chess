@@ -87,4 +87,12 @@ public record UserService(UserDataAccess userDataAccess, AuthDataAccess authData
             authDataAccess.deleteAuth(responseData);
         }
     }
+
+    public AuthData getAuth(String authToken) throws UnauthorizedException, DataAccessException, SQLException {
+        AuthData authData = authDataAccess.getAuth(authToken);
+        if (authData == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
+        return authData;
+    }
 }

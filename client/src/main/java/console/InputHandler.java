@@ -7,7 +7,6 @@ import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
 import ui.ChessBoardViewer;
 import websocket.WebSocketFacade;
-import websocket.commands.ConnectCommand;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -263,14 +262,8 @@ public class InputHandler {
 
         gameNum = inputs[1];
         String playerColor = inputs[2];
-        ChessGame.TeamColor teamColor;
 
-        if (playerColor.equals("white")) {
-            teamColor = ChessGame.TeamColor.WHITE;
-        } else if (playerColor.equals("black")) {
-            teamColor = ChessGame.TeamColor.BLACK;
-        }
-        else {
+        if (!playerColor.equals("white") && !playerColor.equals("black")) {
             throw new InvalidInputException("invalid color provided");
         }
 
@@ -293,7 +286,7 @@ public class InputHandler {
         System.out.printf("Joined game %s (ID %d) as %s color\n", gameName, gameNumAsInt, playerColor);
 
         // Initiate connect request
-        webSocketFacade.connect(authToken, gameID, ConnectCommand.ParticipantType.OBSERVER, gameName, user, playerColor);
+        webSocketFacade.connectPlayer(authToken, gameID);
     }
 
     public void parseObserveGame(String[] inputs) throws InvalidInputException {

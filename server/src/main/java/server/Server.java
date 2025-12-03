@@ -47,8 +47,6 @@ public class Server {
     public Server() {
         server = Javalin.create(config -> config.staticFiles.add("web"));
 
-        var webSocketHandler = new WebSocketHandler();
-
         // Register your endpoints and exception handlers here.
         server.post("user", this::register);
         server.post("session", this::login);
@@ -57,13 +55,6 @@ public class Server {
         server.put("game", this::joinGame);
         server.get("game", this::listGames);
         server.delete("db", this::clear);
-
-        // Enable websocket connections
-        server.ws("ws", ws -> {
-            ws.onConnect(webSocketHandler);
-            ws.onMessage(webSocketHandler);
-            ws.onClose(webSocketHandler);
-        });
 
         // Create the SQL database, if it does not already exist
         try {
@@ -92,6 +83,15 @@ public class Server {
         userService = new UserService(dataAccess, authAccess);
         gameService = new GameService(authAccess, gameAccess);
         databaseService = new DatabaseService(dataAccess, authAccess, gameAccess);
+
+        var webSocketHandler = new WebSocketHandler(userService, gameService, databaseService);
+
+        // Enable websocket connections
+        server.ws("ws", ws -> {
+            ws.onConnect(webSocketHandler);
+            ws.onMessage(webSocketHandler);
+            ws.onClose(webSocketHandler);
+        });
     }
 
     private void register(@NotNull Context ctx) {
