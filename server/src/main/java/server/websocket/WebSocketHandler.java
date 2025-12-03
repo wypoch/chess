@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import websocket.commands.ConnectCommand;
 import websocket.commands.LeaveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 
 import chess.ChessGame.TeamColor;
@@ -59,11 +61,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
+    // Connection request received from server
     private void connect(Session session, String jsonInput) throws IOException {
 
         connections.add(session);
         NotificationMessage notification;
         ConnectCommand command = new Gson().fromJson(jsonInput, ConnectCommand.class);
+
+        // Send a LOAD_GAME message back to the client
+        ChessGame game = new ChessGame();
+        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+        session.getRemote().sendString(new Gson().toJson(message));
 
         // Broadcast the appropriate notification
         var participantType = command.getParticipantType();
@@ -71,18 +79,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         var gameName = command.getGameName();
         var playerName = command.getPlayerName();
 
+        String msg;
         if (participantType == ConnectCommand.ParticipantType.PLAYER) {
-
-            var message = String.format("New player %s joined game %s as color %s", playerName, gameName, playerColor);
-            notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                    NotificationMessage.NotificationType.NEW_PLAYER,
-                    message);
+            msg = String.format("New player %s joined game %s as color %s", playerName, gameName, playerColor);
         } else {
-            var message = String.format("New observer %s viewing game %s", playerName, gameName);
-            notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                    NotificationMessage.NotificationType.NEW_OBSERVER,
-                    message);
+            msg = String.format("New observer %s viewing game %s", playerName, gameName);
         }
+        notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
 
         connections.broadcast(session, notification);
     }

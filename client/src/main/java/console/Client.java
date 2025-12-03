@@ -1,19 +1,56 @@
 package console;
 
+import chess.ChessGame;
+import com.google.gson.Gson;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
+import ui.ChessBoardViewer;
+import websocket.ServerMessageObserver;
+import websocket.WebSocketFacade;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.util.Scanner;
 
-public class ConsoleManager {
+public class Client implements ServerMessageObserver {
 
     private String currUser = null;
     private Integer gameID = null;
 
     private final ServerFacade serverFacade;
+    private final WebSocketFacade webSocketFacade;
 
-    public ConsoleManager(ServerFacade serverFacade) {
+    public Client(int port) {
+
+        // Start the ServerFacade and WebSocketFacade
+        var serverFacade = new ServerFacade(port);
+        var webSocketFacade = new WebSocketFacade(port, this);
+
         this.serverFacade = serverFacade;
+        this.webSocketFacade = webSocketFacade;
+    }
+
+    @Override
+    public void notify(String message) {
+        ServerMessage msg = new Gson().fromJson(message, ServerMessage.class);
+        switch (msg.getServerMessageType()) {
+            case NOTIFICATION -> displayNotification(new Gson().fromJson(message, NotificationMessage.class).getMessage());
+            //case ERROR -> displayError(((ErrorMessage) message).getErrorMessage());
+            case LOAD_GAME -> loadGame(new Gson().fromJson(message, LoadGameMessage.class).getGame());
+        }
+    }
+
+    void displayNotification(String message) {
+
+    }
+
+    void displayError(String error) {
+
+    }
+
+    void loadGame(ChessGame game) {
+        ChessBoardViewer.showBoard(game.getBoard(), ChessGame.TeamColor.WHITE);
     }
 
     private String generateTag() {
@@ -26,7 +63,7 @@ public class ConsoleManager {
 
     public void mainLoop() {
         Scanner scanner = new Scanner(System.in);
-        var inputHandler = new InputHandler(serverFacade);
+        var inputHandler = new InputHandler(serverFacade, webSocketFacade);
 
         while (true) {
             // Get the tag for the console
@@ -66,5 +103,4 @@ public class ConsoleManager {
         }
 
     }
-
 }

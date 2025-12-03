@@ -1,14 +1,15 @@
-import console.ConsoleManager;
+import console.Client;
 import serverfacade.ServerFacade;
+import websocket.WebSocketFacade;
 
 public class Main {
 
     public static void main(String[] args) {
         System.out.println("Welcome to the chess client! Type help to get started.\n");
+        int port = 8080;
 
-        // Start the serverFacade
-        var serverFacade = new ServerFacade(8080);
-        var uiManager = new ConsoleManager(serverFacade);
-        uiManager.mainLoop();
+        // Start the main loop for the client
+        var client = new Client(port);
+        client.mainLoop();
     }
 }

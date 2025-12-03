@@ -6,6 +6,8 @@ import model.GameData;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
 import ui.ChessBoardViewer;
+import websocket.WebSocketFacade;
+import websocket.commands.ConnectCommand;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,11 +22,13 @@ public class InputHandler {
     Integer gameID = null;
 
     ServerFacade serverFacade;
+    WebSocketFacade webSocketFacade;
     HashMap<Integer, Integer> gameNumToID = new HashMap<>();
     HashMap<Integer, String> gameNumToName = new HashMap<>();
 
-    public InputHandler(ServerFacade serverFacade) {
+    public InputHandler(ServerFacade serverFacade, WebSocketFacade webSocketFacade) {
         this.serverFacade = serverFacade;
+        this.webSocketFacade = webSocketFacade;
     }
 
     public String getUser() {
@@ -284,12 +288,12 @@ public class InputHandler {
         // Join the game and remember the game ID
         serverFacade.joinGame(authToken, playerColor, gameID);
         this.gameID = gameID;
+        String gameName = gameNumToName.get(gameNumAsInt);
 
-        System.out.printf("Joined game %s (ID %d) as %s color\n",
-                gameNumToName.get(gameNumAsInt), gameNumAsInt, playerColor);
+        System.out.printf("Joined game %s (ID %d) as %s color\n", gameName, gameNumAsInt, playerColor);
 
-        var chessGameJoin = new ChessGame();
-        ChessBoardViewer.showBoard(chessGameJoin.getBoard(), teamColor);
+        // Initiate connect request
+        webSocketFacade.connect(authToken, gameID, ConnectCommand.ParticipantType.OBSERVER, gameName, user, playerColor);
     }
 
     public void parseObserveGame(String[] inputs) throws InvalidInputException {
