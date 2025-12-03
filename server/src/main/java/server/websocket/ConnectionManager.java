@@ -18,7 +18,7 @@ public class ConnectionManager {
     }
 
     public void broadcast(Session excludeSession, NotificationMessage notification) throws IOException {
-        String msg = notification.toString();
+        String msg = notification.getMessage();
         for (Session c : connections.values()) {
             if (c.isOpen()) {
                 if (!c.equals(excludeSession)) {

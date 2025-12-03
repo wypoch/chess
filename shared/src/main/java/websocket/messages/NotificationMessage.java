@@ -20,4 +20,8 @@ public class NotificationMessage extends ServerMessage {
         NEW_CHECK,
         NEW_CHECKMATE
     }
+
+    public String getMessage() {
+        return message;
+    }
 }
