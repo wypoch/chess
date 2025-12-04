@@ -222,8 +222,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new Exception("cannot make move as observer");
         }
 
+        GameData newGameData = gameService.getGame(gameID);
+        ChessGame newGame = newGameData.game();
+
         // Send a LOAD_GAME message back to ALL clients
-        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, newGame);
         connections.broadcast(session, gameID, message);
         session.getRemote().sendString(new Gson().toJson(message));
 
@@ -236,9 +239,48 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         String msg = String.format("User %s made move from %s to %s in game %s", playerName, start, end, gameName);
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
-
         connections.broadcast(session, gameID, notification);
 
-        // TODO: handle checks, checkmates, stalemates
+        // Handle checks, checkmates, stalemates
+        if (newGame.isInCheck(ChessGame.TeamColor.WHITE)) {
+            msg = "White team is in check";
+            notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+            connections.broadcast(session, gameID, notification);
+            session.getRemote().sendString(new Gson().toJson(message));
+        }
+        if (newGame.isInCheck(ChessGame.TeamColor.BLACK)) {
+            msg = "Black team is in check";
+            notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+            connections.broadcast(session, gameID, notification);
+            session.getRemote().sendString(new Gson().toJson(message));
+        }
+        if (newGame.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            msg = "White team is in checkmate";
+            notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+            connections.broadcast(session, gameID, notification);
+            session.getRemote().sendString(new Gson().toJson(notification));
+            completeGames.put(gameID, gameID);
+        }
+        if (newGame.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            msg = "Black team is in checkmate";
+            notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+            connections.broadcast(session, gameID, notification);
+            session.getRemote().sendString(new Gson().toJson(notification));
+            completeGames.put(gameID, gameID);
+        }
+        if (newGame.isInStalemate(ChessGame.TeamColor.WHITE)) {
+            msg = "White team is in stalemate";
+            notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+            connections.broadcast(session, gameID, notification);
+            session.getRemote().sendString(new Gson().toJson(notification));
+            completeGames.put(gameID, gameID);
+        }
+        if (newGame.isInStalemate(ChessGame.TeamColor.BLACK)) {
+            msg = "Black team is in stalemate";
+            notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+            connections.broadcast(session, gameID, notification);
+            session.getRemote().sendString(new Gson().toJson(notification));
+            completeGames.put(gameID, gameID);
+        }
     }
 }
