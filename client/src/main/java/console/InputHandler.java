@@ -2,6 +2,7 @@ package console;
 
 import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import model.AuthData;
 import model.GameData;
@@ -13,6 +14,7 @@ import websocket.commands.UserGameCommand;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import static ui.EscapeSequences.RESET_TEXT_COLOR;
@@ -130,6 +132,7 @@ public class InputHandler {
                 break;
 
             case "move":
+                parseMoveGameplay(inputs);
                 break;
 
             case "resign":
@@ -370,8 +373,17 @@ public class InputHandler {
             throw new InvalidInputException("command takes no additional inputs");
         }
 
-        // Initiate resign request
-        webSocketFacade.executeUserCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+        // Confirm resignation
+        System.out.println("Are you sure you want to resign (y/n)?");
+        Scanner scanner = new Scanner(System.in);
+        String[] inputs2 = scanner.nextLine().split(" ");
+
+        if (inputs2[0].equals("y")) {
+            // Initiate resign request
+            webSocketFacade.executeUserCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+        } else {
+            System.out.println("Command cancelled");
+        }
     }
 
     public void parseHighlightGameplay(String[] inputs) throws InvalidInputException {
@@ -390,7 +402,14 @@ public class InputHandler {
 
         ChessBoard currBoard = currGame.getBoard();
         ChessPosition pos = new ChessPosition(row, col);
-        ChessGame.TeamColor pieceColor = currGame.getBoard().getPiece(pos).getTeamColor();
+        ChessPiece piece = currBoard.getPiece(pos);
+
+        // Don't highlight a null piece
+        if (piece == null) {
+            ChessBoardViewer.showBoard(currBoard, playerColor);
+            return;
+        }
+        ChessGame.TeamColor pieceColor = piece.getTeamColor();
 
         // Only highlight the board if the piece color matches the current player's color
         var possMoves = currGame.validMoves(pos);
@@ -398,6 +417,12 @@ public class InputHandler {
             ChessBoardViewer.showBoardWithMoves(currBoard, playerColor, possMoves);
         } else {
             ChessBoardViewer.showBoard(currBoard, playerColor);
+        }
+    }
+
+    public void parseMoveGameplay(String[] inputs) throws InvalidInputException {
+        if (inputs.length != 3) {
+            throw new InvalidInputException("need to supply exactly start and end positions");
         }
     }
 }
