@@ -37,31 +37,27 @@ public record WebSocketHandler(UserService userService, GameService gameService,
     }
 
     @Override
-    public void handleMessage(WsMessageContext ctx) {
-
-        int gameID = -1;
-        String authToken = null;
-        Session session = ctx.session;
-        String message = ctx.message();
+    public void handleMessage(@NotNull WsMessageContext ctx) {
 
         try {
-            UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
-            gameID = command.getGameID();
-            authToken = command.getAuthToken();
+            UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+            Integer gameID = command.getGameID();
+            String authToken = command.getAuthToken();
 
             AuthData authData = userService.getAuth(authToken);
             GameData gameData = gameService.getGame(gameID);
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, gameID, authData, gameData);
+                case CONNECT -> connect(ctx.session, gameID, authData, gameData);
                 //case MAKE_MOVE -> makeMove(ctx.session, message);
-                //case LEAVE -> leave(ctx.session, message);
+                case LEAVE -> leave(ctx.session, gameID, authData, gameData);
                 //case RESIGN -> resign(gameID, authToken, ctx.session);
             }
         } catch (Exception ex) {
             try {
-                ErrorMessage msg = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, String.format("Error: %s", ex.getMessage()));
-                session.getRemote().sendString(new Gson().toJson(msg));
+                ErrorMessage msg = new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
+                        String.format("Error: %s", ex.getMessage()));
+                ctx.session.getRemote().sendString(new Gson().toJson(msg));
             } catch (IOException ex2) {
                 throw new RuntimeException("Communication failure");
             }
@@ -90,8 +86,7 @@ public record WebSocketHandler(UserService userService, GameService gameService,
         if (whiteUsername != null && whiteUsername.equals(playerName)) {
             playerColor = ChessGame.TeamColor.WHITE;
             playerColorString = "white";
-        }
-        else if (blackUsername != null && blackUsername.equals(playerName)) {
+        } else if (blackUsername != null && blackUsername.equals(playerName)) {
             playerColor = ChessGame.TeamColor.BLACK;
             playerColorString = "black";
         }
@@ -106,24 +101,44 @@ public record WebSocketHandler(UserService userService, GameService gameService,
         session.getRemote().sendString(new Gson().toJson(message));
 
         // Broadcast the appropriate notification
-        NotificationMessage notification;
         String msg;
         if (playerColorString != null) {
-            msg = String.format("New player %s joined game %s as color %s", playerName, gameName, playerColorString);
+            msg = String.format("Username %s joined game %s as color %s", playerName, gameName, playerColorString);
         } else {
-            msg = String.format("New player %s joined game %s as observer", playerName, gameName);
+            msg = String.format("Username %s joined game %s as observer", playerName, gameName);
         }
 
-        notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
         connections.broadcast(session, gameID, notification);
     }
 
-//    private void leave(Session session, String jsonInput) throws IOException {
-//        connections.add(session);
-//        NotificationMessage notification;
-//        LeaveCommand command = new Gson().fromJson(jsonInput, LeaveCommand.class);
-//
-//        connections.broadcast(session, notification);
-//        connections.remove(session);
-//    }
+    private void leave(Session session, Integer gameID, AuthData authData, GameData gameData) throws IOException {
+
+        String playerName = authData.username();
+        String gameName = gameData.gameName();
+
+        String whiteUsername = gameData.whiteUsername();
+        String blackUsername = gameData.blackUsername();
+        ChessGame.TeamColor playerColor;
+
+        // Player found in the game
+        if (whiteUsername != null && whiteUsername.equals(playerName)) {
+            playerColor = ChessGame.TeamColor.WHITE;
+        } else if (blackUsername != null && blackUsername.equals(playerName)) {
+            playerColor = ChessGame.TeamColor.BLACK;
+        }
+        // Player not found in the game
+        else {
+            throw new RuntimeException(String.format("User %s not found in game %s", playerName, gameName));
+        }
+
+        // TODO: Remove the player from the game
+        gameService.removeUserFromGame();
+
+        String msg = String.format("Username %s left game %s", playerName, gameName);
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+
+        connections.broadcast(session, gameID, notification);
+        connections.remove(session);
+    }
 }

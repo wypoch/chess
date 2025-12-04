@@ -119,4 +119,8 @@ public class GameService {
         }
         return gameData;
     }
+
+    public void removeUserFromGame() {
+
+    }
 }

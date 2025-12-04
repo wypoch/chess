@@ -7,6 +7,7 @@ import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
 import ui.ChessBoardViewer;
 import websocket.WebSocketFacade;
+import websocket.commands.UserGameCommand;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,9 +17,10 @@ import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
 
 public class InputHandler {
 
-    String user = null;
-    String authToken = null;
-    Integer gameID = null;
+    private String user = null;
+    private String authToken = null;
+    private String gameName = null;
+    private Integer gameID = null;
 
     ServerFacade serverFacade;
     WebSocketFacade webSocketFacade;
@@ -34,8 +36,8 @@ public class InputHandler {
         return user;
     }
 
-    public Integer getGameID() {
-        return gameID;
+    public String getGameName() {
+        return gameName;
     }
 
     public void preLoginParse(String[] inputs) throws InvalidInputException, TerminationException, HTTPException {
@@ -113,6 +115,7 @@ public class InputHandler {
                 break;
 
             case "leave":
+                parseLeaveGameplay(inputs);
                 break;
 
             case "move":
@@ -280,13 +283,14 @@ public class InputHandler {
 
         // Join the game and remember the game ID
         serverFacade.joinGame(authToken, playerColor, gameID);
-        this.gameID = gameID;
         String gameName = gameNumToName.get(gameNumAsInt);
+        this.gameName = gameName;
+        this.gameID = gameID;
 
         System.out.printf("Joined game %s (ID %d) as %s color\n", gameName, gameNumAsInt, playerColor);
 
         // Initiate connect request
-        webSocketFacade.connect(authToken, gameID);
+        webSocketFacade.executeUserCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
     }
 
     public void parseObserveGame(String[] inputs) throws InvalidInputException {
@@ -310,11 +314,24 @@ public class InputHandler {
             throw new InvalidInputException("provided value does not correspond to any known games...try the list command again?");
         }
 
+        this.gameName = gameNumToName.get(gameNumAsInt);
         this.gameID = gameID;
 
-        System.out.printf("Observing game %s (ID %d)\n", gameNumToName.get(gameNumAsInt), gameNumAsInt);
+        System.out.printf("Observing game %s (ID %d)\n", gameName, gameNumAsInt);
 
         // Initiate connect request
-        webSocketFacade.connect(authToken, gameID);
+        webSocketFacade.executeUserCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+    }
+
+    public void parseLeaveGameplay(String[] inputs) throws InvalidInputException {
+        if (inputs.length > 1) {
+            throw new InvalidInputException("command takes no additional inputs");
+        }
+
+        // Initiate leave request
+        webSocketFacade.executeUserCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
+
+        this.gameName = null;
+        this.gameID = null;
     }
 }

@@ -1,6 +1,5 @@
 package console;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
@@ -17,7 +16,7 @@ import java.util.Scanner;
 public class Client implements ServerMessageObserver {
 
     private String currUser = null;
-    private Integer gameID = null;
+    private String currGame = null;
 
     private final ServerFacade serverFacade;
     private final WebSocketFacade webSocketFacade;
@@ -60,8 +59,10 @@ public class Client implements ServerMessageObserver {
     private String generateTag() {
         if (currUser == null) {
             return "(logged out) >>> ";
-        } else {
+        } else if (currGame == null) {
             return String.format("(%s) >>> ", currUser);
+        } else {
+            return String.format("(%s playing game %s) >>> ", currUser, currGame);
         }
     }
 
@@ -81,7 +82,7 @@ public class Client implements ServerMessageObserver {
                 // Determine which state we are in and update the inputHandler
                 if (currUser == null) {
                     inputHandler.preLoginParse(inputs);
-                } else if (gameID == null) {
+                } else if (currGame == null) {
                     inputHandler.postLoginParse(inputs);
                 } else {
                     inputHandler.gameplayParse(inputs);
@@ -103,7 +104,7 @@ public class Client implements ServerMessageObserver {
 
             // Update the current user
             currUser = inputHandler.getUser();
-            gameID = inputHandler.getGameID();
+            currGame = inputHandler.getGameName();
         }
 
     }
