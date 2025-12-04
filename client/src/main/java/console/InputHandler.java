@@ -411,15 +411,9 @@ public class InputHandler {
             ChessBoardViewer.showBoard(currBoard, playerColor);
             return;
         }
-        ChessGame.TeamColor pieceColor = piece.getTeamColor();
 
-        // Only highlight the board if the piece color matches the current player's color
         var possMoves = currGame.validMoves(pos);
-        if (pieceColor == currGame.getTeamTurn()) {
-            ChessBoardViewer.showBoardWithMoves(currBoard, playerColor, possMoves);
-        } else {
-            ChessBoardViewer.showBoard(currBoard, playerColor);
-        }
+        ChessBoardViewer.showBoardWithMoves(currBoard, playerColor, possMoves);
     }
 
     public void parseMoveGameplay(String[] inputs) throws InvalidInputException {
