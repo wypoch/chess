@@ -1,9 +1,11 @@
 package console;
 
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
+import ui.ChessBoardViewer;
 import websocket.WebSocketFacade;
 import websocket.commands.UserGameCommand;
 
@@ -19,6 +21,8 @@ public class InputHandler {
     private String authToken = null;
     private String gameName = null;
     private Integer gameID = null;
+    private ChessGame currGame = null;
+    private ChessGame.TeamColor playerColor = null;
 
     ServerFacade serverFacade;
     WebSocketFacade webSocketFacade;
@@ -36,6 +40,10 @@ public class InputHandler {
 
     public String getGameName() {
         return gameName;
+    }
+
+    public void setGame(ChessGame game) {
+        currGame = game;
     }
 
     public void preLoginParse(String[] inputs) throws InvalidInputException, TerminationException, HTTPException {
@@ -113,6 +121,7 @@ public class InputHandler {
                 parseQuit(inputs);
 
             case "redraw":
+                parseRedrawGameplay(inputs);
                 break;
 
             case "leave":
@@ -267,8 +276,13 @@ public class InputHandler {
 
         gameNum = inputs[1];
         String playerColor = inputs[2];
+        ChessGame.TeamColor teamColor;
 
-        if (!playerColor.equals("white") && !playerColor.equals("black")) {
+        if (playerColor.equals("white")) {
+            teamColor = ChessGame.TeamColor.WHITE;
+        } else if (playerColor.equals("black")) {
+            teamColor = ChessGame.TeamColor.BLACK;
+        } else {
             throw new InvalidInputException("invalid color provided");
         }
 
@@ -288,6 +302,7 @@ public class InputHandler {
         String gameName = gameNumToName.get(gameNumAsInt);
         this.gameName = gameName;
         this.gameID = gameID;
+        this.playerColor = teamColor;
 
         System.out.printf("Joined game %s (ID %d) as %s color\n", gameName, gameNumAsInt, playerColor);
 
@@ -318,6 +333,7 @@ public class InputHandler {
 
         this.gameName = gameNumToName.get(gameNumAsInt);
         this.gameID = gameID;
+        this.playerColor = ChessGame.TeamColor.WHITE;
 
         System.out.printf("Observing game %s (ID %d)\n", gameName, gameNumAsInt);
 
@@ -335,5 +351,14 @@ public class InputHandler {
 
         this.gameName = null;
         this.gameID = null;
+    }
+
+    public void parseRedrawGameplay(String[] inputs) throws InvalidInputException {
+        if (inputs.length > 1) {
+            throw new InvalidInputException("command takes no additional inputs");
+        }
+
+        // Redraw the current board
+        ChessBoardViewer.showBoard(currGame.getBoard(), playerColor);
     }
 }

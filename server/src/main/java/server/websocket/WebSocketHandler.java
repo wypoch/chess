@@ -32,7 +32,7 @@ public record WebSocketHandler(UserService userService, GameService gameService,
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
-        System.out.println("Websocket connected");
+        //System.out.println("Websocket connected");
         ctx.enableAutomaticPings();
     }
 
@@ -66,7 +66,7 @@ public record WebSocketHandler(UserService userService, GameService gameService,
 
     @Override
     public void handleClose(@NotNull WsCloseContext ctx) {
-        System.out.println("Websocket closed");
+        //System.out.println("Websocket closed");
     }
 
     // Connection request received from server
@@ -103,9 +103,9 @@ public record WebSocketHandler(UserService userService, GameService gameService,
         // Broadcast the appropriate notification
         String msg;
         if (playerColorString != null) {
-            msg = String.format("Username %s joined game %s as color %s", playerName, gameName, playerColorString);
+            msg = String.format("User %s joined game %s as color %s", playerName, gameName, playerColorString);
         } else {
-            msg = String.format("Username %s joined game %s as observer", playerName, gameName);
+            msg = String.format("User %s joined game %s as observer", playerName, gameName);
         }
 
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
@@ -119,27 +119,29 @@ public record WebSocketHandler(UserService userService, GameService gameService,
 
         String whiteUsername = gameData.whiteUsername();
         String blackUsername = gameData.blackUsername();
-        ChessGame.TeamColor playerColor;
 
-        // Player found in the game
+        // Player cases
         if (whiteUsername != null && whiteUsername.equals(playerName)) {
-            playerColor = ChessGame.TeamColor.WHITE;
+            // Remove the white player from the game
+            try {
+                gameService.removeUserFromGame(gameID, ChessGame.TeamColor.WHITE);
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage());
+            }
+
         } else if (blackUsername != null && blackUsername.equals(playerName)) {
-            playerColor = ChessGame.TeamColor.BLACK;
-        }
-        // Player not found in the game
-        else {
-            throw new RuntimeException(String.format("User %s not found in game %s", playerName, gameName));
+            // Remove the black player from the game
+            try {
+                gameService.removeUserFromGame(gameID, ChessGame.TeamColor.BLACK);
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage());
+            }
+
         }
 
-        // Remove the player from the game
-        try {
-            gameService.removeUserFromGame(gameID, playerColor);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        // Send a notification that the user left
+        String msg = String.format("User %s left game %s", playerName, gameName);
 
-        String msg = String.format("Username %s left game %s", playerName, gameName);
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
 
         connections.broadcast(session, gameID, notification);

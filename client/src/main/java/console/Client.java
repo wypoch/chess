@@ -1,5 +1,6 @@
 package console;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
@@ -16,19 +17,16 @@ import java.util.Scanner;
 public class Client implements ServerMessageObserver {
 
     private String currUser = null;
-    private String currGame = null;
+    private String currGameName = null;
 
-    private final ServerFacade serverFacade;
-    private final WebSocketFacade webSocketFacade;
+    InputHandler inputHandler;
 
     public Client(int port) {
 
         // Start the ServerFacade and WebSocketFacade
-        var serverFacade = new ServerFacade(port);
-        var webSocketFacade = new WebSocketFacade(port, this);
-
-        this.serverFacade = serverFacade;
-        this.webSocketFacade = webSocketFacade;
+        ServerFacade serverFacade = new ServerFacade(port);
+        WebSocketFacade webSocketFacade = new WebSocketFacade(port, this);
+        this.inputHandler = new InputHandler(serverFacade, webSocketFacade);
     }
 
     @Override
@@ -52,23 +50,24 @@ public class Client implements ServerMessageObserver {
     }
 
     void loadGame(LoadGameMessage message) {
-        ChessBoardViewer.showBoard(message.getGame().getBoard(), message.getColor());
+        ChessGame currGame = message.getGame();
+        inputHandler.setGame(currGame);
+        ChessBoardViewer.showBoard(currGame.getBoard(), message.getColor());
         System.out.print(generateTag());
     }
 
     private String generateTag() {
         if (currUser == null) {
             return "(logged out) >>> ";
-        } else if (currGame == null) {
+        } else if (currGameName == null) {
             return String.format("(%s) >>> ", currUser);
         } else {
-            return String.format("(%s playing %s) >>> ", currUser, currGame);
+            return String.format("(%s playing %s) >>> ", currUser, currGameName);
         }
     }
 
     public void mainLoop() {
         Scanner scanner = new Scanner(System.in);
-        var inputHandler = new InputHandler(serverFacade, webSocketFacade);
 
         while (true) {
             // Get the tag for the console
@@ -82,7 +81,7 @@ public class Client implements ServerMessageObserver {
                 // Determine which state we are in and update the inputHandler
                 if (currUser == null) {
                     inputHandler.preLoginParse(inputs);
-                } else if (currGame == null) {
+                } else if (currGameName == null) {
                     inputHandler.postLoginParse(inputs);
                 } else {
                     inputHandler.gameplayParse(inputs);
@@ -104,7 +103,7 @@ public class Client implements ServerMessageObserver {
 
             // Update the current user
             currUser = inputHandler.getUser();
-            currGame = inputHandler.getGameName();
+            currGameName = inputHandler.getGameName();
         }
 
     }
