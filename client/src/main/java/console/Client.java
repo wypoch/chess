@@ -40,12 +40,12 @@ public class Client implements ServerMessageObserver {
     }
 
     void displayNotification(String message) {
-        System.out.println(message);
+        System.out.printf("[NOTIFICATION] %s%n", message);
         System.out.print(generateTag());
     }
 
     void displayError(String error) {
-        System.out.println(error);
+        System.out.printf("[ERROR] %s%n", error);
         System.out.print(generateTag());
     }
 

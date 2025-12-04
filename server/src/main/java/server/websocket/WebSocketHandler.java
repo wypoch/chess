@@ -24,11 +24,13 @@ import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 public record WebSocketHandler(UserService userService, GameService gameService, DatabaseService databaseService)
         implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
     private static final ConnectionManager connections = new ConnectionManager();
+    public static final ConcurrentHashMap<Integer, Integer> completeGames = new ConcurrentHashMap<>();
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -51,12 +53,11 @@ public record WebSocketHandler(UserService userService, GameService gameService,
                 case CONNECT -> connect(ctx.session, gameID, authData, gameData);
                 //case MAKE_MOVE -> makeMove(ctx.session, message);
                 case LEAVE -> leave(ctx.session, gameID, authData, gameData);
-                //case RESIGN -> resign(gameID, authToken, ctx.session);
+                case RESIGN -> resign(ctx.session, gameID, authData, gameData);
             }
         } catch (Exception ex) {
             try {
-                ErrorMessage msg = new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
-                        String.format("Error: %s", ex.getMessage()));
+                ErrorMessage msg = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, ex.getMessage());
                 ctx.session.getRemote().sendString(new Gson().toJson(msg));
             } catch (IOException ex2) {
                 throw new RuntimeException("Communication failure");
@@ -136,7 +137,6 @@ public record WebSocketHandler(UserService userService, GameService gameService,
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
-
         }
 
         // Send a notification that the user left
@@ -146,5 +146,32 @@ public record WebSocketHandler(UserService userService, GameService gameService,
 
         connections.broadcast(session, gameID, notification);
         connections.remove(session);
+    }
+
+    private void resign(Session session, Integer gameID, AuthData authData, GameData gameData) throws Exception {
+
+        // See if the user is a player or an observer
+        String playerName = authData.username();
+        String gameName = gameData.gameName();
+        String whiteUsername = gameData.whiteUsername();
+        String blackUsername = gameData.blackUsername();
+
+        // Player cases
+        if (whiteUsername != null && whiteUsername.equals(playerName)) {
+            // Mark the game as complete
+            completeGames.put(gameID, gameID);
+        } else if (blackUsername != null && blackUsername.equals(playerName)) {
+            // Mark the game as complete
+            completeGames.put(gameID, gameID);
+        }
+        // Observer case
+        else {
+            throw new Exception("cannot resign as observer");
+        }
+
+        String msg = String.format("User %s resigned from game %s", playerName, gameName);
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+
+        connections.broadcast(session, gameID, notification);
     }
 }

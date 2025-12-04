@@ -37,11 +37,9 @@ public class InputHandler {
     public String getUser() {
         return user;
     }
-
     public String getGameName() {
         return gameName;
     }
-
     public void setGame(ChessGame game) {
         currGame = game;
     }
@@ -132,6 +130,7 @@ public class InputHandler {
                 break;
 
             case "resign":
+                parseResignGameplay(inputs);
                 break;
 
             case "highlight":
@@ -360,5 +359,14 @@ public class InputHandler {
 
         // Redraw the current board
         ChessBoardViewer.showBoard(currGame.getBoard(), playerColor);
+    }
+
+    public void parseResignGameplay(String[] inputs) throws InvalidInputException {
+        if (inputs.length > 1) {
+            throw new InvalidInputException("command takes no additional inputs");
+        }
+
+        // Initiate resign request
+        webSocketFacade.executeUserCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
     }
 }
