@@ -286,7 +286,7 @@ public class InputHandler {
         System.out.printf("Joined game %s (ID %d) as %s color\n", gameName, gameNumAsInt, playerColor);
 
         // Initiate connect request
-        webSocketFacade.connectPlayer(authToken, gameID);
+        webSocketFacade.connect(authToken, gameID);
     }
 
     public void parseObserveGame(String[] inputs) throws InvalidInputException {
@@ -314,7 +314,7 @@ public class InputHandler {
 
         System.out.printf("Observing game %s (ID %d)\n", gameNumToName.get(gameNumAsInt), gameNumAsInt);
 
-        var chessGameObserve = new ChessGame();
-        ChessBoardViewer.showBoard(chessGameObserve.getBoard(), ChessGame.TeamColor.WHITE);
+        // Initiate connect request
+        webSocketFacade.connect(authToken, gameID);
     }
 }

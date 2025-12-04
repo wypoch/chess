@@ -53,8 +53,7 @@ public record WebSocketHandler(UserService userService, GameService gameService,
             GameData gameData = gameService.getGame(gameID);
 
             switch (command.getCommandType()) {
-                case CONNECT -> connectPlayer(session, authData, gameData);
-                //case OBSERVE -> connectObserver(session, authData, gameData);
+                case CONNECT -> connect(session, gameID, authData, gameData);
                 //case MAKE_MOVE -> makeMove(ctx.session, message);
                 //case LEAVE -> leave(ctx.session, message);
                 //case RESIGN -> resign(gameID, authToken, ctx.session);
@@ -75,10 +74,9 @@ public record WebSocketHandler(UserService userService, GameService gameService,
     }
 
     // Connection request received from server
-    private void connectPlayer(Session session, AuthData authData, GameData gameData) throws IOException {
+    private void connect(Session session, Integer gameID, AuthData authData, GameData gameData) throws IOException {
 
-        connections.add(session);
-        NotificationMessage notification;
+        connections.add(session, gameID);
 
         // Gather information for the notification from the database
         String gameName = gameData.gameName();
@@ -86,8 +84,9 @@ public record WebSocketHandler(UserService userService, GameService gameService,
         String blackUsername = gameData.blackUsername();
         String playerName = authData.username();
         ChessGame.TeamColor playerColor;
-        String playerColorString;
+        String playerColorString = null;
 
+        // Player cases
         if (whiteUsername != null && whiteUsername.equals(playerName)) {
             playerColor = ChessGame.TeamColor.WHITE;
             playerColorString = "white";
@@ -95,8 +94,10 @@ public record WebSocketHandler(UserService userService, GameService gameService,
         else if (blackUsername != null && blackUsername.equals(playerName)) {
             playerColor = ChessGame.TeamColor.BLACK;
             playerColorString = "black";
-        } else {
-            throw new RuntimeException("Player not found in game");
+        }
+        // Observer case
+        else {
+            playerColor = ChessGame.TeamColor.WHITE;
         }
 
         // Send a LOAD_GAME message back to the client
@@ -105,10 +106,16 @@ public record WebSocketHandler(UserService userService, GameService gameService,
         session.getRemote().sendString(new Gson().toJson(message));
 
         // Broadcast the appropriate notification
-        String msg = String.format("New player %s joined game %s as color %s", playerName, gameName, playerColorString);
-        notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        NotificationMessage notification;
+        String msg;
+        if (playerColorString != null) {
+            msg = String.format("New player %s joined game %s as color %s", playerName, gameName, playerColorString);
+        } else {
+            msg = String.format("New player %s joined game %s as observer", playerName, gameName);
+        }
 
-        connections.broadcast(session, notification);
+        notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+        connections.broadcast(session, gameID, notification);
     }
 
 //    private void leave(Session session, String jsonInput) throws IOException {
