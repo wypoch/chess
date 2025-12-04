@@ -1,6 +1,8 @@
 package console;
 
+import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessPosition;
 import model.AuthData;
 import model.GameData;
 import serverfacade.HTTPException;
@@ -11,6 +13,7 @@ import websocket.commands.UserGameCommand;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 import static ui.EscapeSequences.RESET_TEXT_COLOR;
 import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
@@ -134,6 +137,7 @@ public class InputHandler {
                 break;
 
             case "highlight":
+                parseHighlightGameplay(inputs);
                 break;
 
             default:
@@ -180,8 +184,8 @@ public class InputHandler {
 
     public void parseHelpGameplay(String[] inputs) throws InvalidInputException {
         String postLoginMenu = SET_TEXT_COLOR_BLUE + "redraw" + RESET_TEXT_COLOR + " : redraw the board\n" +
-                SET_TEXT_COLOR_BLUE + "highlight <pos>" + RESET_TEXT_COLOR + " : highlight legal moves for piece at position\n" +
-                SET_TEXT_COLOR_BLUE + "move <start> <end>" + RESET_TEXT_COLOR + " : moves piece from start position to end position\n" +
+                SET_TEXT_COLOR_BLUE + "highlight <pos>" + RESET_TEXT_COLOR + " : highlight legal moves for piece at position (ex. e3)\n" +
+                SET_TEXT_COLOR_BLUE + "move <start> <end>" + RESET_TEXT_COLOR + " : moves piece from start position (ex. a2) to end position (ex. a3)\n" +
                 SET_TEXT_COLOR_BLUE + "resign" + RESET_TEXT_COLOR + " : forfeit the game\n" +
                 SET_TEXT_COLOR_BLUE + "leave" + RESET_TEXT_COLOR + " : exit the game\n" +
                 SET_TEXT_COLOR_BLUE + "quit" + RESET_TEXT_COLOR + " : exit the client\n" +
@@ -368,5 +372,32 @@ public class InputHandler {
 
         // Initiate resign request
         webSocketFacade.executeUserCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+    }
+
+    public void parseHighlightGameplay(String[] inputs) throws InvalidInputException {
+        if (inputs.length != 2) {
+            throw new InvalidInputException("need to supply exactly piece to highlight moves");
+        }
+
+        String piecePos = inputs[1];
+        if (!Pattern.matches("[a-h][1-8]", piecePos)) {
+            throw new InvalidInputException("invalid piece position supplied");
+        }
+
+        // Extract the rows and columns of the piece
+        int row = (int) inputs[1].charAt(1) - 48;
+        int col = (int) inputs[1].charAt(0) - 96;
+
+        ChessBoard currBoard = currGame.getBoard();
+        ChessPosition pos = new ChessPosition(row, col);
+        ChessGame.TeamColor pieceColor = currGame.getBoard().getPiece(pos).getTeamColor();
+
+        // Only highlight the board if the piece color matches the current player's color
+        var possMoves = currGame.validMoves(pos);
+        if (pieceColor == currGame.getTeamTurn()) {
+            ChessBoardViewer.showBoardWithMoves(currBoard, playerColor, possMoves);
+        } else {
+            ChessBoardViewer.showBoard(currBoard, playerColor);
+        }
     }
 }
