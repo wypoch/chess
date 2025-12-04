@@ -18,6 +18,7 @@ public class Client implements ServerMessageObserver {
 
     private String currUser = null;
     private String currGameName = null;
+    private ChessGame.TeamColor color = null;
 
     InputHandler inputHandler;
 
@@ -26,7 +27,11 @@ public class Client implements ServerMessageObserver {
         // Start the ServerFacade and WebSocketFacade
         ServerFacade serverFacade = new ServerFacade(port);
         WebSocketFacade webSocketFacade = new WebSocketFacade(port, this);
-        this.inputHandler = new InputHandler(serverFacade, webSocketFacade);
+        this.inputHandler = new InputHandler(serverFacade, webSocketFacade, this);
+    }
+
+    public void setColor(ChessGame.TeamColor color) {
+        this.color = color;
     }
 
     @Override
@@ -53,8 +58,7 @@ public class Client implements ServerMessageObserver {
         ChessGame currGame = message.getGame();
         inputHandler.setGame(currGame);
 
-        // TODO: this is just a hotfix, need to replace with actual team color. Requires re-factoring Client and InputHandler
-        ChessBoardViewer.showBoard(currGame.getBoard(), ChessGame.TeamColor.WHITE);
+        ChessBoardViewer.showBoard(currGame.getBoard(), color);
         System.out.print(generateTag());
     }
 

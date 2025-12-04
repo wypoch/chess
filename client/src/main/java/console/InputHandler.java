@@ -25,15 +25,17 @@ public class InputHandler {
     private Integer gameID = null;
     private ChessGame currGame = null;
     private ChessGame.TeamColor playerColor = null;
+    Client client;
 
     ServerFacade serverFacade;
     WebSocketFacade webSocketFacade;
     HashMap<Integer, Integer> gameNumToID = new HashMap<>();
     HashMap<Integer, String> gameNumToName = new HashMap<>();
 
-    public InputHandler(ServerFacade serverFacade, WebSocketFacade webSocketFacade) {
+    public InputHandler(ServerFacade serverFacade, WebSocketFacade webSocketFacade, Client client) {
         this.serverFacade = serverFacade;
         this.webSocketFacade = webSocketFacade;
+        this.client = client;
     }
 
     public String getUser() {
@@ -307,6 +309,7 @@ public class InputHandler {
         this.gameName = gameName;
         this.gameID = gameID;
         this.playerColor = teamColor;
+        client.setColor(this.playerColor);
 
         System.out.printf("Joined game %s (ID %d) as %s color\n", gameName, gameNumAsInt, playerColor);
 
@@ -338,6 +341,7 @@ public class InputHandler {
         this.gameName = gameNumToName.get(gameNumAsInt);
         this.gameID = gameID;
         this.playerColor = ChessGame.TeamColor.WHITE;
+        client.setColor(this.playerColor);
 
         System.out.printf("Observing game %s (ID %d)\n", gameName, gameNumAsInt);
 
