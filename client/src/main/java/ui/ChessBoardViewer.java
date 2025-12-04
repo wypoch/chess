@@ -79,10 +79,10 @@ public class ChessBoardViewer {
                 System.out.print(SET_BG_COLOR_LIGHT_GREY + " " + i + " " + RESET_BG_COLOR);
                 for (j = 8; j >= 1; j--) {
                     ChessPosition pos = new ChessPosition(i, j);
-                    if (highlightPositions.contains(pos)) {
-                        printPieceHighlighted(chessBoard, i, j);
-                    } else {
+                    if (!highlightPositions.contains(pos)) {
                         printPiece(chessBoard, i, j);
+                    } else {
+                        printPieceHighlighted(chessBoard, i, j);
                     }
                 }
                 System.out.print(SET_BG_COLOR_LIGHT_GREY + " " + i + " " + RESET_BG_COLOR);

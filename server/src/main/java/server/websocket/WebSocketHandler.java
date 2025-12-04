@@ -13,7 +13,6 @@ import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 
 import org.jetbrains.annotations.NotNull;
-import service.DatabaseService;
 import service.GameService;
 import service.UserService;
 import websocket.commands.MakeMoveCommand;
@@ -27,11 +26,18 @@ import websocket.messages.ServerMessage;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
-public record WebSocketHandler(UserService userService, GameService gameService, DatabaseService databaseService)
-        implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
+public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
-    private static final ConnectionManager connections = new ConnectionManager();
-    public static final ConcurrentHashMap<Integer, Integer> completeGames = new ConcurrentHashMap<>();
+    private final UserService userService;
+    private final GameService gameService;
+
+    private final ConnectionManager connections = new ConnectionManager();
+    public final ConcurrentHashMap<Integer, Integer> completeGames = new ConcurrentHashMap<>();
+
+    public WebSocketHandler(UserService userService, GameService gameService) {
+        this.userService = userService;
+        this.gameService = gameService;
+    }
 
     @Override
     public void handleConnect(WsConnectContext ctx) {

@@ -33,8 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import server.websocket.WebSocketHandler;
-
 public class Server {
 
     private final Javalin server;
@@ -84,7 +82,7 @@ public class Server {
         gameService = new GameService(authAccess, gameAccess);
         databaseService = new DatabaseService(dataAccess, authAccess, gameAccess);
 
-        var webSocketHandler = new WebSocketHandler(userService, gameService, databaseService);
+        var webSocketHandler = new WebSocketHandler(userService, gameService);
 
         // Enable websocket connections
         server.ws("ws", ws -> {

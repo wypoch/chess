@@ -185,7 +185,8 @@ public class InputHandler {
     public void parseHelpGameplay(String[] inputs) throws InvalidInputException {
         String postLoginMenu = SET_TEXT_COLOR_BLUE + "redraw" + RESET_TEXT_COLOR + " : redraw the board\n" +
                 SET_TEXT_COLOR_BLUE + "highlight <pos>" + RESET_TEXT_COLOR + " : highlight legal moves for piece at position (ex. e3)\n" +
-                SET_TEXT_COLOR_BLUE + "move <start> <end> <piece>" + RESET_TEXT_COLOR + " : moves piece from start position (ex. a2) to end position (ex. a3), with promotion piece for pawns\n" +
+                SET_TEXT_COLOR_BLUE + "move <start> <end> <piece>" + RESET_TEXT_COLOR +
+                    " : moves piece from start position (ex. a2) to end position (ex. a3), with promotion piece (ex. queen) for pawns\n" +
                 SET_TEXT_COLOR_BLUE + "resign" + RESET_TEXT_COLOR + " : forfeit the game\n" +
                 SET_TEXT_COLOR_BLUE + "leave" + RESET_TEXT_COLOR + " : exit the game\n" +
                 SET_TEXT_COLOR_BLUE + "quit" + RESET_TEXT_COLOR + " : exit the client\n" +
