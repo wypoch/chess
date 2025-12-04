@@ -1,6 +1,8 @@
 package service;
 
+import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessMove;
 import dataaccess.AuthDataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.GameDataAccess;
@@ -133,5 +135,37 @@ public class GameService {
 
         // Update the gameData
         gameDataAccess.updateGame(newGameData);
+    }
+
+    public void makeMove(int gameID, ChessMove move) throws Exception {
+        GameData gameData = gameDataAccess.getGame(gameID);
+
+        GameData newGameData;
+        ChessGame currGame = gameData.game();
+        ChessBoard currBoard = currGame.getBoard();
+
+        var moveStart = move.getStartPosition();
+
+        // Go through disqualifying cases
+        var movePiece = currBoard.getPiece(moveStart);
+        if (movePiece == null) {
+            throw new Exception("no piece provided for move");
+        }
+
+        var pieceColor = movePiece.getTeamColor();
+        if (pieceColor != currGame.getTeamTurn()) {
+            throw new Exception("invalid move");
+        }
+
+        // Check if the move is valid
+        var validMoves = currGame.validMoves(moveStart);
+        if (validMoves.contains(move)) {
+            currGame.makeMove(move);
+            newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), currGame);
+            gameDataAccess.updateGame(newGameData);
+
+        } else {
+            throw new Exception("invalid move");
+        }
     }
 }

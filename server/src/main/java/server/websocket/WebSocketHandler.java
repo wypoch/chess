@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import service.DatabaseService;
 import service.GameService;
 import service.UserService;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -51,7 +52,7 @@ public record WebSocketHandler(UserService userService, GameService gameService,
 
             switch (command.getCommandType()) {
                 case CONNECT -> connect(ctx.session, gameID, authData, gameData);
-                //case MAKE_MOVE -> makeMove(ctx.session, message);
+                case MAKE_MOVE -> makeMove(ctx.session, ctx.message(), gameID, authData, gameData);
                 case LEAVE -> leave(ctx.session, gameID, authData, gameData);
                 case RESIGN -> resign(ctx.session, gameID, authData, gameData);
             }
@@ -80,25 +81,19 @@ public record WebSocketHandler(UserService userService, GameService gameService,
         String whiteUsername = gameData.whiteUsername();
         String blackUsername = gameData.blackUsername();
         String playerName = authData.username();
-        ChessGame.TeamColor playerColor;
+
         String playerColorString = null;
 
-        // Player cases
+        // Determine player color for notification
         if (whiteUsername != null && whiteUsername.equals(playerName)) {
-            playerColor = ChessGame.TeamColor.WHITE;
             playerColorString = "white";
         } else if (blackUsername != null && blackUsername.equals(playerName)) {
-            playerColor = ChessGame.TeamColor.BLACK;
             playerColorString = "black";
-        }
-        // Observer case
-        else {
-            playerColor = ChessGame.TeamColor.WHITE;
         }
 
         // Send a LOAD_GAME message back to the client
         ChessGame game = gameData.game();
-        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game, playerColor);
+        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
         session.getRemote().sendString(new Gson().toJson(message));
 
         // Broadcast the appropriate notification
@@ -150,6 +145,11 @@ public record WebSocketHandler(UserService userService, GameService gameService,
 
     private void resign(Session session, Integer gameID, AuthData authData, GameData gameData) throws Exception {
 
+        // Cannot resign if the game has ended
+        if (completeGames.contains(gameID)) {
+            throw new Exception("cannot resign; game is over");
+        }
+
         // See if the user is a player or an observer
         String playerName = authData.username();
         String gameName = gameData.gameName();
@@ -172,6 +172,67 @@ public record WebSocketHandler(UserService userService, GameService gameService,
         String msg = String.format("User %s resigned from game %s", playerName, gameName);
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
 
+        // Send the notification to ALL clients
         connections.broadcast(session, gameID, notification);
+        session.getRemote().sendString(new Gson().toJson(notification));
+    }
+
+    private void makeMove(Session session, String jsonInput, Integer gameID, AuthData authData, GameData gameData) throws Exception {
+
+        MakeMoveCommand command = new Gson().fromJson(jsonInput, MakeMoveCommand.class);
+        var move = command.getMove();
+
+        // Cannot make a move if the game has ended
+        if (completeGames.contains(gameID)) {
+            throw new Exception("cannot make a move; game is over");
+        }
+
+        // See if the user is a player or an observer
+        String playerName = authData.username();
+        String gameName = gameData.gameName();
+        String whiteUsername = gameData.whiteUsername();
+        String blackUsername = gameData.blackUsername();
+
+        // Player cases
+        ChessGame game = gameData.game();
+        if (whiteUsername != null && whiteUsername.equals(playerName)) {
+            // White cannot make move on black's turn
+            if (game.getTeamTurn() != ChessGame.TeamColor.WHITE) {
+                throw new Exception("cannot make move as opponent");
+            }
+            // Update the game in the database
+            gameService.makeMove(gameID, move);
+
+        } else if (blackUsername != null && blackUsername.equals(playerName)) {
+            // Black cannot make move on white's turn
+            if (game.getTeamTurn() != ChessGame.TeamColor.BLACK) {
+                throw new Exception("cannot make move as opponent");
+            }
+            // Update the game in the database
+            gameService.makeMove(gameID, move);
+        }
+        // Observer case
+        else {
+            throw new Exception("cannot make move as observer");
+        }
+
+        // Send a LOAD_GAME message back to ALL clients
+        LoadGameMessage message = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+        connections.broadcast(session, gameID, message);
+        session.getRemote().sendString(new Gson().toJson(message));
+
+        // Broadcast notification to all other clients
+        var startPos = move.getStartPosition();
+        var endPos = move.getEndPosition();
+
+        String start = "" + (char)(startPos.getColumn() + 96) + (char)(startPos.getRow() + 48);
+        String end = "" + (char)(endPos.getColumn() + 96) + (char)(endPos.getRow() + 48);
+
+        String msg = String.format("User %s made move from %s to %s in game %s", playerName, start, end, gameName);
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
+
+        connections.broadcast(session, gameID, notification);
+
+        // TODO: handle checks, checkmates, stalemates
     }
 }

@@ -1,9 +1,6 @@
 package console;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import model.AuthData;
 import model.GameData;
 import serverfacade.HTTPException;
@@ -188,7 +185,7 @@ public class InputHandler {
     public void parseHelpGameplay(String[] inputs) throws InvalidInputException {
         String postLoginMenu = SET_TEXT_COLOR_BLUE + "redraw" + RESET_TEXT_COLOR + " : redraw the board\n" +
                 SET_TEXT_COLOR_BLUE + "highlight <pos>" + RESET_TEXT_COLOR + " : highlight legal moves for piece at position (ex. e3)\n" +
-                SET_TEXT_COLOR_BLUE + "move <start> <end>" + RESET_TEXT_COLOR + " : moves piece from start position (ex. a2) to end position (ex. a3)\n" +
+                SET_TEXT_COLOR_BLUE + "move <start> <end> <piece>" + RESET_TEXT_COLOR + " : moves piece from start position (ex. a2) to end position (ex. a3), with promotion piece for pawns\n" +
                 SET_TEXT_COLOR_BLUE + "resign" + RESET_TEXT_COLOR + " : forfeit the game\n" +
                 SET_TEXT_COLOR_BLUE + "leave" + RESET_TEXT_COLOR + " : exit the game\n" +
                 SET_TEXT_COLOR_BLUE + "quit" + RESET_TEXT_COLOR + " : exit the client\n" +
@@ -421,8 +418,37 @@ public class InputHandler {
     }
 
     public void parseMoveGameplay(String[] inputs) throws InvalidInputException {
-        if (inputs.length != 3) {
-            throw new InvalidInputException("need to supply exactly start and end positions");
+        if (!(inputs.length == 3 || inputs.length == 4)) {
+            throw new InvalidInputException("need to supply exactly start and end positions, and possibly promotion piece");
         }
+
+        String start = inputs[1];
+        String end = inputs[2];
+        ChessPiece.PieceType promotionPiece = null;
+
+        if (inputs.length == 4) {
+            String piece = inputs[3];
+            promotionPiece = switch (piece) {
+                case "queen" -> ChessPiece.PieceType.QUEEN;
+                case "rook" -> ChessPiece.PieceType.ROOK;
+                case "bishop" -> ChessPiece.PieceType.BISHOP;
+                case "knight" -> ChessPiece.PieceType.KNIGHT;
+                default -> throw new InvalidInputException("invalid promotion piece supplied");
+            };
+        }
+
+        if (!Pattern.matches("[a-h][1-8]", start)) {
+            throw new InvalidInputException("invalid start position supplied");
+        }
+        if (!Pattern.matches("[a-h][1-8]", end)) {
+            throw new InvalidInputException("invalid end position supplied");
+        }
+
+        ChessPosition startPos = new ChessPosition((int) start.charAt(1) - 48, (int) start.charAt(0) - 96);
+        ChessPosition endPos = new ChessPosition((int) end.charAt(1) - 48, (int) end.charAt(0) - 96);
+        ChessMove move = new ChessMove(startPos, endPos, promotionPiece);
+
+        webSocketFacade.executeMakeMove(move, authToken, gameID);
+
     }
 }

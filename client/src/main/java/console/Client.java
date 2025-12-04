@@ -52,7 +52,9 @@ public class Client implements ServerMessageObserver {
     void loadGame(LoadGameMessage message) {
         ChessGame currGame = message.getGame();
         inputHandler.setGame(currGame);
-        ChessBoardViewer.showBoard(currGame.getBoard(), message.getColor());
+
+        // TODO: this is just a hotfix, need to replace with actual team color. Requires re-factoring Client and InputHandler
+        ChessBoardViewer.showBoard(currGame.getBoard(), ChessGame.TeamColor.WHITE);
         System.out.print(generateTag());
     }
 
