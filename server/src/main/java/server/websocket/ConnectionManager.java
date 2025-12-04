@@ -1,5 +1,6 @@
 package server.websocket;
 
+import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.NotificationMessage;
 
@@ -19,7 +20,7 @@ public class ConnectionManager {
     }
 
     public void broadcast(Session excludeSession, Integer gameID, NotificationMessage notification) throws IOException {
-        String msg = notification.getMessage();
+        String msg = new Gson().toJson(notification);
         for (Session c : connections.keySet()) {
             // Only broadcast to sessions connected to our same gameID
             Integer currGameID = connections.get(c);
