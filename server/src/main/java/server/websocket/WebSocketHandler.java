@@ -242,17 +242,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.broadcast(session, gameID, notification);
 
         // Handle checks, checkmates, stalemates
-        if (newGame.isInCheck(ChessGame.TeamColor.WHITE)) {
+        if (newGame.isInCheck(ChessGame.TeamColor.WHITE) && !newGame.isInCheckmate(ChessGame.TeamColor.WHITE)) {
             msg = "White team is in check";
             notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
             connections.broadcast(session, gameID, notification);
-            session.getRemote().sendString(new Gson().toJson(message));
+            session.getRemote().sendString(new Gson().toJson(notification));
         }
-        if (newGame.isInCheck(ChessGame.TeamColor.BLACK)) {
+        if (newGame.isInCheck(ChessGame.TeamColor.BLACK) && !newGame.isInCheckmate(ChessGame.TeamColor.BLACK)) {
             msg = "Black team is in check";
             notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);
             connections.broadcast(session, gameID, notification);
-            session.getRemote().sendString(new Gson().toJson(message));
+            session.getRemote().sendString(new Gson().toJson(notification));
         }
         if (newGame.isInCheckmate(ChessGame.TeamColor.WHITE)) {
             msg = "White team is in checkmate";
