@@ -132,8 +132,12 @@ public record WebSocketHandler(UserService userService, GameService gameService,
             throw new RuntimeException(String.format("User %s not found in game %s", playerName, gameName));
         }
 
-        // TODO: Remove the player from the game
-        gameService.removeUserFromGame();
+        // Remove the player from the game
+        try {
+            gameService.removeUserFromGame(gameID, playerColor);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
 
         String msg = String.format("Username %s left game %s", playerName, gameName);
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg);

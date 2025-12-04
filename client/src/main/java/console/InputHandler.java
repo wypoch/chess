@@ -1,11 +1,9 @@
 package console;
 
-import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import serverfacade.HTTPException;
 import serverfacade.ServerFacade;
-import ui.ChessBoardViewer;
 import websocket.WebSocketFacade;
 import websocket.commands.UserGameCommand;
 
@@ -102,7 +100,7 @@ public class InputHandler {
         }
     }
 
-    public void gameplayParse(String[] inputs) throws InvalidInputException {
+    public void gameplayParse(String[] inputs) throws InvalidInputException, TerminationException {
 
         String option = inputs[0];
 
@@ -110,6 +108,9 @@ public class InputHandler {
             case "help":
                 parseHelpGameplay(inputs);
                 break;
+
+            case "quit":
+                parseQuit(inputs);
 
             case "redraw":
                 break;
@@ -175,6 +176,7 @@ public class InputHandler {
                 SET_TEXT_COLOR_BLUE + "move <start> <end>" + RESET_TEXT_COLOR + " : moves piece from start position to end position\n" +
                 SET_TEXT_COLOR_BLUE + "resign" + RESET_TEXT_COLOR + " : forfeit the game\n" +
                 SET_TEXT_COLOR_BLUE + "leave" + RESET_TEXT_COLOR + " : exit the game\n" +
+                SET_TEXT_COLOR_BLUE + "quit" + RESET_TEXT_COLOR + " : exit the client\n" +
                 SET_TEXT_COLOR_BLUE + "help" + RESET_TEXT_COLOR + " : display this help menu";
 
         if (inputs.length > 1) {

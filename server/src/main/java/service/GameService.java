@@ -120,7 +120,18 @@ public class GameService {
         return gameData;
     }
 
-    public void removeUserFromGame() {
+    public void removeUserFromGame(int gameID, ChessGame.TeamColor playerColor) throws DataAccessException, SQLException {
+        GameData gameData = gameDataAccess.getGame(gameID);
+        GameData newGameData;
 
+        // Remove the specified user from the gameData
+        if (playerColor == ChessGame.TeamColor.WHITE) {
+            newGameData = new GameData(gameID, null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+        } else {
+            newGameData = new GameData(gameID, gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
+        }
+
+        // Update the gameData
+        gameDataAccess.updateGame(newGameData);
     }
 }

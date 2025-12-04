@@ -62,7 +62,7 @@ public class Client implements ServerMessageObserver {
         } else if (currGame == null) {
             return String.format("(%s) >>> ", currUser);
         } else {
-            return String.format("(%s playing game %s) >>> ", currUser, currGame);
+            return String.format("(%s playing %s) >>> ", currUser, currGame);
         }
     }
 
